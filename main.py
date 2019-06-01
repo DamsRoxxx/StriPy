@@ -9,14 +9,16 @@ import xml.etree.ElementTree as ET
 from jinja2 import Environment, FileSystemLoader
 from cherrypy.lib import static
 from stripy.library import *
+from stripy.reader import *
 
 # Initialize environment
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 JINJA_ENV 	= Environment(loader=FileSystemLoader('templates'))
-LOG_DIR		= r'log'
+LOG_DIR		= os.path.join(CURRENT_DIR, r'log')
 LOG_FILE	= os.path.join(LOG_DIR, r'stripy-log')
 DATA_DIR	= os.path.join(CURRENT_DIR, r'data')
 COVER_DIR	= os.path.join(DATA_DIR, r'covers')
+TMP_DIR		= os.path.join(DATA_DIR, r'tmp')
 OPDS_ROOT	= '/opds-comics/'
 OPDS_COMICS_ROOT = '/opds-comics/comics/'
 OPDS_COMICREADER_ROOT = '/opds-comics/comicreader/'
@@ -187,12 +189,30 @@ class UbooquityOPDSReader(object):
 	@cherrypy.tools.accept(media='text/plain')
 	def GET(self, id, **params):
 		cherrypy.log("------> UbooquityOPDSReader(id={})".format(id))
-		if 'page' in params:
-			cherrypy.log("------> UbooquityOPDSReader(id={}) : page={}".format(id, params['page']))
-		if 'width' in params:
-			cherrypy.log("------> UbooquityOPDSReader(id={}) : width={}".format(id, params['width']))
-		return
+		row = library.getBookInfos(id)
+		if row:
+			path = row['PATH']
+			page = 0
+			width = Reader.THUMB_WIDTH
+			if 'page' in params:
+				page = int(params['page'])
+				cherrypy.log("------> UbooquityOPDSReader(id={}) : page={}".format(id, page))
 
+				if 'width' in params:
+					width = int(params['width'])
+					cherrypy.log("------> UbooquityOPDSReader(id={}) : width={}".format(id, width))
+			
+			imgname = '{}_{}_{}.jpg'.format(id, page, width)
+			imgpath = os.path.join(TMP_DIR, imgname)
+			cherrypy.log("------> UbooquityOPDSReader(id={}) : imgpath={}".format(id, imgpath))
+			if not os.path.isfile(imgpath):
+				cherrypy.log("------> UbooquityOPDSReader(id={}) : imgpath={} create image for ({}, {})...".format(id, imgpath, page, width))
+				Reader.renderPage(path, imgpath, page, width)
+
+			if os.path.isfile(imgpath):
+				cherrypy.log("------> UbooquityOPDSReader(id={}) : imgpath={} image found for ({}, {})".format(id, imgpath, page, width))
+				return static.serve_file(imgpath, 'image/jpeg', 'inline', imgname)		
+				
 	def POST(self, length=8):
 		return
 
@@ -208,8 +228,11 @@ if __name__ == '__main__':
 	logger = logging.getLogger()
 	logger.setLevel(logging.DEBUG)
 
-	# Create data directories
-	if not os.path.isdir(LOG_DIR): os.mkdir(LOG_DIR)
+	# Create directories
+	if not os.path.isdir(LOG_DIR): 		os.mkdir(LOG_DIR)
+	if not os.path.isdir(DATA_DIR): 	os.mkdir(DATA_DIR)
+	if not os.path.isdir(COVER_DIR): 	os.mkdir(COVER_DIR)
+	if not os.path.isdir(TMP_DIR): 		os.mkdir(TMP_DIR)
 
 	# Adding file log handleer
 	with open(LOG_FILE, 'w'): pass

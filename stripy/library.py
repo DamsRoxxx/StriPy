@@ -3,59 +3,13 @@ import collections
 import sqlite3
 import logging
 import os
-import fitz
-import rarfile
+from stripy.reader import *
 from PIL import Image
 
-IMG_WIDTH 	= 195
-IMG_HEIGHT 	= 280
-
-def fitzRenderFirstPage(filePath, imgPath):
-	global IMG_WIDTH
-	global IMG_HEIGHT
-
-	# Render with PyMuPDF
-	doc 	= fitz.open(filePath)
-	page 	= doc.loadPage(0)
-	pix 	= page.getPixmap()
-
-	# Convert to a PIL image
-	img = Image.frombytes("RGBA", [pix.width, pix.height], pix.samples)
-	
-	# Resize image
-	img.thumbnail((IMG_WIDTH, IMG_HEIGHT))
-
-	# Save image
-	img.convert('RGB').save(imgPath)
-	
-def rarExtractFirstPage(filePath, imgPath):
-	global IMG_WIDTH
-	global IMG_HEIGHT
-	
-	# Open with rarfile
-	rf = rarfile.RarFile(filePath)
-	
-	# If there is content
-	if rf.infolist():
-		# open first file
-		imgfile 	= rf.open(rf.infolist()[0])
-		
-		# Convert to a PIL image
-		img = Image.open(imgfile)
-
-		# Resize image
-		img.thumbnail((IMG_WIDTH, IMG_HEIGHT))
-
-		# Save image
-		img.save(imgPath)
-
-
 class Library:
-	SCHEMA = 'schema.sql'
-	SUPPORTED_EXT = ['.pdf', '.cbz', '.cbr', '.epub']
-	FITZ_SUPPORTED_EXT 	= ['.pdf', '.cbz', '.epub']
-	RAR_SUPPORTED_EXT 	= ['.cbr']
-	THUMBIMG_EXT		= '.jpg'
+	SCHEMA 			= 'schema.sql'
+	SUPPORTED_EXT 	= ['.pdf', '.cbz', '.cbr', '.epub']
+	THUMBIMG_EXT	= '.jpg'
 
 	#Library management statements
 	INSERT_LIBRARY = 'INSERT INTO LIBRARY (PATH) VALUES (?)'
@@ -196,37 +150,22 @@ class Library:
 			coverName = '{:d}{}'.format(bookID, self.THUMBIMG_EXT)
 			coverPath = os.path.join(self.coverPath, coverName)
 			logging.debug('Book ({}, {}, {}) search cover thumb image...'.format(libraryID, parentID, title))	
-			if os.path.isfile(coverPath): 
-				coverID = bookID
-				logging.debug('Book ({}, {}, {}) Cover thumb image = \'{}\''.format(libraryID, parentID, title, coverPath))
-			else:
-				logging.debug('Book ({}, {}, {}) No cover thumb image \'{}\' found!'.format(libraryID, parentID, title, coverPath))				
 		else:
 			cursor.execute(self.INSERT_BOOK, (libraryID, parentID, title, filename, ext, path))
 			bookID = cursor.lastrowid
 			logging.debug('Book ({}, {}, {}) created : Id = {}'.format(libraryID, parentID, title, bookID))	
-			
-			# TODO : Factorize
-			# If format is supported by fitz
-			if ext in self.FITZ_SUPPORTED_EXT:
-				logging.debug('Book ({}, {}, {}) create cover thumb image with fitz...'.format(libraryID, parentID, title))
-				coverID = bookID
-				coverName = '{:d}{}'.format(bookID, self.THUMBIMG_EXT)
-				coverPath = os.path.join(self.coverPath, coverName)
-				logging.debug('Book ({}, {}, {}) Cover thumb image = \'{}\''.format(libraryID, parentID, title, coverPath))
-				fitzRenderFirstPage(path, coverPath)
-			# If format is supported by rar
-			elif ext in self.RAR_SUPPORTED_EXT:
-				logging.debug('Book ({}, {}, {}) extract cover thumb image with unrar...'.format(libraryID, parentID, title))
-				coverID = bookID
-				coverName = '{:d}{}'.format(bookID, self.THUMBIMG_EXT)
-				coverPath = os.path.join(self.coverPath, coverName)
-				logging.debug('Book ({}, {}, {}) Cover thumb image = \'{}\''.format(libraryID, parentID, title, coverPath))
-				rarExtractFirstPage(path, coverPath)
-			else:
-				logging.debug('Book ({}, {}, {}) Unsupported file format, no thumb image created!'.format(libraryID, parentID, title))
+			logging.debug('Book ({}, {}, {}) create cover thumb...'.format(libraryID, parentID, title))
+			coverName = '{:d}{}'.format(bookID, self.THUMBIMG_EXT)
+			coverPath = os.path.join(self.coverPath, coverName)
+			Reader.thumbFirstPage(path, coverPath)
+			logging.debug('Book ({}, {}, {}) Cover thumb image = \'{}\''.format(libraryID, parentID, title, coverPath))				
 				
-				
+		if os.path.isfile(coverPath): 
+			coverID = bookID
+			logging.debug('Book ({}, {}, {}) Cover thumb image = \'{}\''.format(libraryID, parentID, title, coverPath))
+		else:
+			logging.debug('Book ({}, {}, {}) No cover thumb image \'{}\' found!'.format(libraryID, parentID, title, coverPath))				
+
 		return bookID, coverID
 		
 	def __removeBook(self, bookID):
