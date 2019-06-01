@@ -15,9 +15,13 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 JINJA_ENV 	= Environment(loader=FileSystemLoader('templates'))
 LOG_DIR		= r'log'
 LOG_FILE	= os.path.join(LOG_DIR, r'stripy-log')
-DATA_DIR	= r'data'
+DATA_DIR	= os.path.join(CURRENT_DIR, r'data')
+COVER_DIR	= os.path.join(DATA_DIR, r'covers')
+OPDS_ROOT	= '/opds-comics/'
+OPDS_COMICS_ROOT = '/opds-comics/comics/'
+OPDS_COMICREADER_ROOT = '/opds-comics/comicreader/'
 
-class LibraryRenderer(object):
+class WebLibrary(object):
 	library 	= None
 	asyncUpdateThread = None
 
@@ -37,17 +41,6 @@ class LibraryRenderer(object):
 		self.template	= JINJA_ENV.get_template('main.html')
 		return self.template.render(title=title, previous=previous, items=library.getDirContent(id))
 		
-	def renderOPDS(self, id = None):
-		if not id:
-			self.template	= JINJA_ENV.get_template('opds-root.xml')
-			return self.template.render()
-		elif id == 'all':
-			self.template	= JINJA_ENV.get_template('opds-content.xml')
-			return self.template.render(items=library.getDirContent())
-		else:
-			self.template	= JINJA_ENV.get_template('opds-content.xml')
-			return self.template.render(items=library.getDirContent(id))
-
 	def sendFile(self, id):
 		row = library.getBookInfos(id)
 		if row:
@@ -55,11 +48,11 @@ class LibraryRenderer(object):
 			basename = os.path.basename(path)
 			filename, ext = os.path.splitext(basename)
 			if 'pdf' in ext:
-				return static.serve_file(path, 'application/pdf', 'attachment', basename)
+				return static.serve_file(path, 'application/pdf', 'inline', basename)
 			elif 'epub' in ext:
-				return static.serve_file(path, 'application/epub+zip', 'attachment', basename)
+				return static.serve_file(path, 'application/epub+zip', 'inline', basename)
 			else:
-				return static.serve_file(path, 'application/octet-stream', 'attachment', basename)
+				return static.serve_file(path, 'application/octet-stream', 'inline', basename)
 				
 	def asyncUpdate(self):
 		library.update()
@@ -101,24 +94,113 @@ class LibraryRenderer(object):
 			return 'updating'
 		return 'idle'
 
-	@cherrypy.expose(['opds-comics'])
-	def opds(self, arg1 = None, arg2 = None, arg3 = None, **params):
-		cherrypy.log("------> OPDS(args1={}, args2={})".format(arg1, arg2))
-		if not arg2:
-			id=arg1
-			cherrypy.log("------> OPDS(id={})".format(id))
-			if 'groupByFolder' in params:
-				cherrypy.log("------> OPDS(id={}) : groupByFolder={}".format(id, params['groupByFolder']))
-			if 'latest' in params:
-				cherrypy.log("------> OPDS(id={}) : latest={}".format(id, params['latest']))
-			if 'displayFiles' in params:
-				cherrypy.log("------> OPDS(id={}) : displayFiles={}".format(id, params['displayFiles']))
-				
-			return self.renderOPDS(id)
+@cherrypy.expose
+class UbooquityOPDSLibrary(object):
+	library 	= None
+
+	def __init__(self, library):
+		self.library = library		
+	
+	@cherrypy.tools.accept(media='text/plain')
+	def GET(self, id = None, **params):
+		cherrypy.log("------> UbooquityOPDSLibrary(id={})".format(id))
+		if 'groupByFolder' in params:
+			cherrypy.log("------> UbooquityOPDSLibrary(id={}) : groupByFolder={}".format(id, params['groupByFolder']))
+		if 'latest' in params:
+			cherrypy.log("------> UbooquityOPDSLibrary(id={}) : latest={}".format(id, params['latest']))
+		if 'displayFiles' in params:
+			cherrypy.log("------> UbooquityOPDSLibrary(id={}) : displayFiles={}".format(id, params['displayFiles']))
+
+		if not id:
+			self.template	= JINJA_ENV.get_template('opds-root.xml')
+			return self.template.render(opds_root=OPDS_ROOT, opds_comics_root=OPDS_COMICS_ROOT, opds_comicreader_root=OPDS_COMICREADER_ROOT)
+		elif id == 'all':
+			self.template	= JINJA_ENV.get_template('opds-content.xml')
+			return self.template.render(opds_root=OPDS_ROOT, opds_comics_root=OPDS_COMICS_ROOT, opds_comicreader_root=OPDS_COMICREADER_ROOT, items=library.getDirContent())
 		else:
-			id=arg2
-			return self.sendFile(id)
+			self.template	= JINJA_ENV.get_template('opds-content.xml')
+			return self.template.render(opds_root=OPDS_ROOT, opds_comics_root=OPDS_COMICS_ROOT, opds_comicreader_root=OPDS_COMICREADER_ROOT, items=library.getDirContent(id))
+
+	def POST(self, length=8):
+		return
+
+	def PUT(self, another_string):
+		return
+
+	def DELETE(self):
+		return
+		
+@cherrypy.expose
+class UbooquityOPDSBook(object):
+	library 	= None
+
+	def __init__(self, library):
+		self.library = library		
+	
+	@cherrypy.tools.accept(media='text/plain')
+	def GET(self, id, file, **params):
+		cherrypy.log("------> UbooquityOPDSBook(id={}, file={})".format(id, file))
+		for param in params:
+			cherrypy.log("------> UbooquityOPDSBook(id={}, file={}) param={}".format(id, file, param))
 			
+		if 'cover' in params:
+			cherrypy.log("------> UbooquityOPDSBook(id={}) : cover={}".format(id, params['cover']))
+			if 'true' == params['cover']:
+				coverfile = '{}{}'.format(id, Library.THUMBIMG_EXT)
+				coverpath = os.path.join(COVER_DIR, coverfile)
+				cherrypy.log("------> UbooquityOPDSBook(id={}) : coverpath={}".format(id, coverpath))
+				if os.path.isfile(coverpath):
+					cherrypy.log("------> UbooquityOPDSBook(id={}) : coverpath={} serving...".format(id, coverpath))
+					return static.serve_file(coverpath, 'image/jpeg', 'inline', coverfile)
+				else:
+					cherrypy.log("------> UbooquityOPDSBook(id={}) : coverpath={} not found!".format(id, coverpath))
+		else:
+			row = library.getBookInfos(id)
+			if row:
+				path = row['PATH']
+				basename = os.path.basename(path)
+				filename, ext = os.path.splitext(basename)
+				cherrypy.log("------> UbooquityOPDSBook(id={}) : file={} serving...".format(id, path))
+				if 'pdf' in ext:
+					return static.serve_file(path, 'application/pdf', 'inline', basename)
+				elif 'epub' in ext:
+					return static.serve_file(path, 'application/epub+zip', 'inline', basename)
+				else:
+					return static.serve_file(path, 'application/octet-stream', 'inline', basename)		
+
+	def POST(self, length=8):
+		return
+
+	def PUT(self, another_string):
+		return
+
+	def DELETE(self):
+		return
+
+@cherrypy.expose
+class UbooquityOPDSReader(object):
+	library 	= None
+
+	def __init__(self, library):
+		self.library = library		
+	
+	@cherrypy.tools.accept(media='text/plain')
+	def GET(self, id, **params):
+		cherrypy.log("------> UbooquityOPDSReader(id={})".format(id))
+		if 'page' in params:
+			cherrypy.log("------> UbooquityOPDSReader(id={}) : page={}".format(id, params['page']))
+		if 'width' in params:
+			cherrypy.log("------> UbooquityOPDSReader(id={}) : width={}".format(id, params['width']))
+		return
+
+	def POST(self, length=8):
+		return
+
+	def PUT(self, another_string):
+		return
+
+	def DELETE(self):
+		return
 
 if __name__ == '__main__':
 	#*****************************************************************
@@ -141,7 +223,29 @@ if __name__ == '__main__':
 	library = Library(DATA_DIR)
 	
 	#*****************************************************************
+	# Configuration
+	opds_conf = {
+        '/': {
+            'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
+            'tools.sessions.on': True,
+            'tools.response_headers.on': True,
+            'tools.response_headers.headers': [('Content-Type', 'text/xml')],
+        }
+    }
+
+	cherrypy.config.update(r'stripy-global.conf')   
+	cherrypy.tree.mount(WebLibrary(library), '/', r'stripy-web.conf')
+	cherrypy.tree.mount(UbooquityOPDSLibrary(library), OPDS_ROOT, opds_conf)
+	cherrypy.tree.mount(UbooquityOPDSBook(library), OPDS_COMICS_ROOT, opds_conf)
+	cherrypy.tree.mount(UbooquityOPDSReader(library), OPDS_COMICREADER_ROOT, opds_conf)
+	
+	#*****************************************************************
 	# Start server
-	myLibraryRenderer = LibraryRenderer(library)
-	cherrypy.config.update({'server.socket_host': '0.0.0.0'})   
-	cherrypy.quickstart(myLibraryRenderer, '/', r'stripy-web.conf')
+	if hasattr(cherrypy.engine, 'block'):
+		# 3.1 syntax
+		cherrypy.engine.start()
+		cherrypy.engine.block()
+	else:
+		# 3.0 syntax
+		cherrypy.server.quickstart()
+		cherrypy.engine.start()

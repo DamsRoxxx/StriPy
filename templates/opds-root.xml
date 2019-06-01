@@ -15,20 +15,20 @@
 <id>allContentFlat</id>
 <updated>2019-05-26T08:26:41+02:00</updated>
 <content type="html">All ebooks presented as a list.</content>
-<link type="application/atom+xml; profile=opds-catalog; kind=acquisition" rel="subsection" href="/opds/all"/>
+<link type="application/atom+xml; profile=opds-catalog; kind=acquisition" rel="subsection" href="{{ opds_root }}all"/>
 </entry>
 <entry>
 <title>Folders</title>
 <id>allContentFolder</id>
 <updated>2019-05-26T08:26:41+02:00</updated>
 <content type="html">All ebooks grouped by folder.</content>
-<link type="application/atom+xml; profile=opds-catalog; kind=navigation" rel="subsection" href="/opds/all?groupByFolder=true"/>
+<link type="application/atom+xml; profile=opds-catalog; kind=navigation" rel="subsection" href="{{ opds_root }}all?groupByFolder=true"/>
 </entry>
 <entry>
 <title>Latest comics</title>
 <id>latestContent</id>
 <updated>2019-05-26T08:26:41+02:00</updated>
 <content type="html">Latest ebooks added to the collection</content>
-<link type="application/atom+xml; profile=opds-catalog; kind=acquisition" rel="subsection" href="/opds/?latest=true"/>
+<link type="application/atom+xml; profile=opds-catalog; kind=acquisition" rel="subsection" href="{{ opds_root }}?latest=true"/>
 </entry>
 </feed>

@@ -74,7 +74,7 @@ class Library:
 	
 	# Book management statements
 	SELECT_BOOK = 'SELECT ID FROM BOOK WHERE LIBRARY_ID = ? AND DIRECTORY_ID = ? AND TITLE = ?'
-	INSERT_BOOK = 'INSERT INTO BOOK (LIBRARY_ID, DIRECTORY_ID, TITLE, PATH) VALUES (?, ?, ?, ?)'
+	INSERT_BOOK = 'INSERT INTO BOOK (LIBRARY_ID, DIRECTORY_ID, TITLE, FILENAME, EXT, PATH) VALUES (?, ?, ?, ?, ?, ?)'
 	DELETE_BOOK = 'DELETE FROM BOOK WHERE ID = ?'
 	SELECT_BOOK_DIRECTORY = 'SELECT ID FROM BOOK WHERE DIRECTORY_ID = ?'
 	DELETE_BOOK_DIRECTORY = 'DELETE FROM BOOK WHERE DIRECTORY_ID = ?'
@@ -84,13 +84,13 @@ class Library:
 	
 	# Content statements
 	SELECT_BOOK_INFOS	=	"SELECT ID, TITLE, PATH FROM BOOK WHERE ID = ?"
-	SELECT_ROOT_CONTENT = 	"SELECT 'dir' AS TYPE, ID AS ID, TITLE AS TITLE, PATH AS PATH, COVER_ID AS COVER_ID FROM DIRECTORY WHERE PARENT_ID IS NULL \
+	SELECT_ROOT_CONTENT = 	"SELECT 'dir' AS TYPE, ID AS ID, TITLE AS TITLE, PATH AS PATH, COVER_ID AS COVER_ID, NULL AS FILENAME, NULL AS EXT FROM DIRECTORY WHERE PARENT_ID IS NULL \
 							UNION \
-							SELECT 'book' AS TYPE, ID AS ID, TITLE AS TITLE, PATH AS PATH, COALESCE(ID, 0) AS COVER_ID FROM BOOK WHERE DIRECTORY_ID IS NULL  \
+							SELECT 'book' AS TYPE, ID AS ID, TITLE AS TITLE, PATH AS PATH, COALESCE(ID, 0) AS COVER_ID, FILENAME AS FILENAME, EXT AS EXT FROM BOOK WHERE DIRECTORY_ID IS NULL  \
 							ORDER BY TITLE"
-	SELECT_DIR_CONTENT = 	"SELECT 'dir' AS TYPE, ID AS ID, TITLE AS TITLE, PATH AS PATH, COVER_ID AS COVER_ID FROM DIRECTORY WHERE PARENT_ID = ? \
+	SELECT_DIR_CONTENT = 	"SELECT 'dir' AS TYPE, ID AS ID, TITLE AS TITLE, PATH AS PATH, COVER_ID AS COVER_ID, NULL AS FILENAME, NULL AS EXT FROM DIRECTORY WHERE PARENT_ID = ? \
 							UNION \
-							SELECT 'book' AS TYPE, ID AS ID, TITLE AS TITLE, PATH AS PATH, COALESCE(ID, 0) FROM BOOK WHERE DIRECTORY_ID = ?  \
+							SELECT 'book' AS TYPE, ID AS ID, TITLE AS TITLE, PATH AS PATH, COALESCE(ID, 0) AS COVER_ID, FILENAME AS FILENAME, EXT AS EXT FROM BOOK WHERE DIRECTORY_ID = ?  \
 							ORDER BY TITLE"
 
 	# Informations statements
@@ -183,7 +183,7 @@ class Library:
 		cursor = self.connection.cursor()
 		cursor.execute(self.UPDATE_DIRECTORY, (coverID, dirID))
 
-	def __getBookID(self, libraryID, parentID, title, ext, path):
+	def __getBookID(self, libraryID, parentID, title, filename, ext, path):
 		logging.debug('Search book ({}, {}, {})...'.format(libraryID, parentID, title))	
 		bookID = None
 		coverID = None
@@ -202,7 +202,7 @@ class Library:
 			else:
 				logging.debug('Book ({}, {}, {}) No cover thumb image \'{}\' found!'.format(libraryID, parentID, title, coverPath))				
 		else:
-			cursor.execute(self.INSERT_BOOK, (libraryID, parentID, title, path))
+			cursor.execute(self.INSERT_BOOK, (libraryID, parentID, title, filename, ext, path))
 			bookID = cursor.lastrowid
 			logging.debug('Book ({}, {}, {}) created : Id = {}'.format(libraryID, parentID, title, bookID))	
 			
@@ -326,18 +326,18 @@ class Library:
 		dirID = self.__getDirectoryID(libraryID, parentID, title, dirPath)
 	
 		# Scan directory
-		for file in sorted(os.listdir(dirPath)):
+		for filename in sorted(os.listdir(dirPath)):
 			itemCoverID = None
-			path = os.path.join(dirPath, file)
+			path = os.path.join(dirPath, filename)
 			if os.path.isfile(path):
 				# Handle book
-				filename, ext = os.path.splitext(file)
+				title, ext = os.path.splitext(filename)
 				if ext in self.SUPPORTED_EXT:
-					bookID, itemCoverID = self.__getBookID(libraryID, dirID, filename, ext, path)
+					bookID, itemCoverID = self.__getBookID(libraryID, dirID, title, filename, ext, path)
 				
 			elif os.path.isdir(path):
 				# Handle dir
-				itemCoverID = self.__scanDirectory(libraryID, path, file, dirID)
+				itemCoverID = self.__scanDirectory(libraryID, path, filename, dirID)
 
 			# If item has a cover
 			if itemCoverID:

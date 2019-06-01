@@ -11,28 +11,31 @@
 <link type="application/atom+xml; profile=opds-catalog; kind=navigation" rel="start" href="/"/>
 <link type="application/opensearchdescription+xml" rel="search" href="/opds/search"/>
 	{% for item in items %}
-	{% if item[0] == 'book' %}
+	{% if item['TYPE'] == 'book' %}
 	<entry>
-		<title>{{ item[2] }}</title>
-		<id>{{ item[1] }}</id>
+		<title>{{ item['TITLE'] }}</title>
+		<id>{{ item['ID'] }}</id>
 		<updated>2019-05-26T08:13:37+02:00</updated>
 		<content type="html">{{ item[2] }}</content>
-		<link type="image/jpeg" rel="http://opds-spec.org/image" href="{{ '/covers/' ~ item[4] ~ '.jpg' }}"/>
-		<link type="image/jpeg" rel="http://opds-spec.org/image/thumbnail" href="{{ '/covers/' ~ item[4] ~ '.jpg' }}"/>
-		<link type="image/jpeg" rel="http://vaemendis.net/opds-pse/stream" href="{{ '/covers/' ~ item[4] ~ '.jpg' }}" pse:count="32"/>
-		<link type="application/pdf" rel="http://opds-spec.org/acquisition" href="{{ '/' ~ item[0] ~ '/' ~ item[1] ~ '/toto.pdf' }}"/>
-		<!--link type="application/octet-stream" rel="http://opds-spec.org/acquisition" href="/opds-comics/comics/6520/Amstrad%20CPC%2003.cbz"/-->
+		<link type="image/jpeg" rel="http://opds-spec.org/image" href="{{ opds_comics_root ~ item['ID'] ~ '/' ~ item['FILENAME'] ~ '?cover=true' }}"/>
+		<link type="image/jpeg" rel="http://opds-spec.org/image/thumbnail" href="{{ opds_comics_root ~ item['ID'] ~ '/' ~ item['FILENAME'] ~ '?cover=true' }}"/>
+		<link type="image/jpeg" rel="http://vaemendis.net/opds-pse/stream" href="{{ opds_comicreader_root ~ item['ID'] ~ '?page={pageNumber}&amp;width={maxWidth}' }}" pse:count="32"/>
+		{% if item['EXT'] == '.pdf' %}
+		<link type="application/pdf" rel="http://opds-spec.org/acquisition" href="{{ opds_comics_root ~ item['ID'] ~ '/' ~ item['FILENAME'] }}"/>
+		{% elif item['EXT'] == '.epub' %}
+		<link type="application/epub+zip" rel="http://opds-spec.org/acquisition" href="{{ opds_comics_root ~ item['ID'] ~ '/' ~ item['FILENAME'] }}"/>
+		{% else %}
+		<link type="application/octet-stream" rel="http://opds-spec.org/acquisition" href="{{ opds_comics_root ~ item['ID'] ~ '/' ~ item['FILENAME'] }}"/>
+		{% endif %}
 	</entry>
-	{% elif item[0] == 'dir' %}
+	{% elif item['TYPE'] == 'dir' %}
 	<entry>
-		<title>{{ item[2] }}</title>
-		<id>{{ item[1] }}</id>
+		<title>{{ item['TITLE'] }}</title>
+		<id>{{ item['ID'] }}</id>
 		<updated>2019-05-26T08:21:18+02:00</updated>
 		<content type="html"/>
-		<link type="image/jpeg" rel="http://opds-spec.org/image" href="{{ '/covers/' ~ item[4] ~ '.jpg' }}"/>
-		<link type="image/jpeg" rel="http://opds-spec.org/image/thumbnail" href="{{ '/covers/' ~ item[4] ~ '.jpg' }}"/>
-		<link type="application/atom+xml; profile=opds-catalog; kind=acquisition" rel="subsection" href="{{ '/opds/' ~ item[1] }}"/>
-		<!--link type="application/atom+xml; profile=opds-catalog; kind=acquisition" rel="subsection" href="/opds-comics/6655/?displayFiles=true"/-->
+		<!--link type="application/atom+xml; profile=opds-catalog; kind=acquisition" rel="subsection" href="{{ opds_root ~ item['ID'] ~ '/?displayFiles=true' }}"/-->
+		<link type="application/atom+xml; profile=opds-catalog; kind=acquisition" rel="subsection" href="{{ opds_root ~ item['ID'] ~ '/' }}"/>
 	</entry>
 	{% endif %}
 	{% endfor %}
