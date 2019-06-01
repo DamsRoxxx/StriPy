@@ -3,7 +3,7 @@ import logging
 import sys
 import os
 import rarfile
-from lib.library import *
+from stripy.library import *
 from PIL import Image
 
 init        = False

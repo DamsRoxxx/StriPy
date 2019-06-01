@@ -8,13 +8,14 @@ import threading
 import xml.etree.ElementTree as ET
 from jinja2 import Environment, FileSystemLoader
 from cherrypy.lib import static
-from lib.library import *
+from stripy.library import *
 
 # Initialize environment
-current_dir = os.path.dirname(os.path.abspath(__file__))
-env 		= Environment(loader=FileSystemLoader('templates'))
-logfile		= r'log/stripy-log'
-datadir		= r'data'
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+JINJA_ENV 	= Environment(loader=FileSystemLoader('templates'))
+LOG_DIR		= r'log'
+LOG_FILE	= os.path.join(LOG_DIR, r'stripy-log')
+DATA_DIR	= r'data'
 
 class LibraryRenderer(object):
 	library 	= None
@@ -33,18 +34,18 @@ class LibraryRenderer(object):
 			if dirInfos.parent_id:
 				previous = '/dir/{}'.format(dirInfos.parent_id)
 	
-		self.template	= env.get_template('main.html')
+		self.template	= JINJA_ENV.get_template('main.html')
 		return self.template.render(title=title, previous=previous, items=library.getDirContent(id))
 		
 	def renderOPDS(self, id = None):
 		if not id:
-			self.template	= env.get_template('opds-root.xml')
+			self.template	= JINJA_ENV.get_template('opds-root.xml')
 			return self.template.render()
 		elif id == 'all':
-			self.template	= env.get_template('opds-content.xml')
+			self.template	= JINJA_ENV.get_template('opds-content.xml')
 			return self.template.render(items=library.getDirContent())
 		else:
-			self.template	= env.get_template('opds-content.xml')
+			self.template	= JINJA_ENV.get_template('opds-content.xml')
 			return self.template.render(items=library.getDirContent(id))
 
 	def sendFile(self, id):
@@ -125,19 +126,22 @@ if __name__ == '__main__':
 	logger = logging.getLogger()
 	logger.setLevel(logging.DEBUG)
 
+	# Create data directories
+	if not os.path.isdir(LOG_DIR): os.mkdir(LOG_DIR)
+
 	# Adding file log handleer
-	with open(logfile, 'w'): pass
-	fileHandler = logging.FileHandler(logfile)
+	with open(LOG_FILE, 'w'): pass
+	fileHandler = logging.FileHandler(LOG_FILE)
 	fileHandler.setLevel(logging.DEBUG)
 	fileHandler.setFormatter(logging.Formatter('%(asctime)s - [%(levelname)s] - %(message)s'))
 	logger.addHandler(fileHandler)
 
 	#*****************************************************************
 	# Opening library
-	library = Library(datadir)
+	library = Library(DATA_DIR)
 	
 	#*****************************************************************
 	# Start server
 	myLibraryRenderer = LibraryRenderer(library)
 	cherrypy.config.update({'server.socket_host': '0.0.0.0'})   
-	cherrypy.quickstart(myLibraryRenderer, '/', 'stripy-web.conf')
+	cherrypy.quickstart(myLibraryRenderer, '/', r'stripy-web.conf')
