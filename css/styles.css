@@ -1,0 +1,221 @@
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+  outline: none;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+html { height: 101%; }
+
+body { 
+  font-family: 'Ramabhadra', sans-serif;
+  letter-spacing: 1px;
+  color: #FFFFFF; 
+  font-size: 13px;
+  line-height: 150%; 
+  background-image: url('/images/background.jpg');
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+}
+
+a { color: white; }
+
+h1 { 
+  font-family: 'Ramabhadra', sans-serif;
+  letter-spacing: 2px;
+  color: white; 
+  color: #FFFFFF; 
+  font-weight: bold;
+  font-size: 32px;
+  line-height: 100%; 
+  vertical-align: center;
+  margin-top:10px;
+  margin-bottom:5px;
+}
+
+.menu_margin {
+margin-left: 2em;
+}
+
+
+/******************************************/
+/* page structure */
+#wrapper {
+	display: block;
+	height: auto;
+	overflow: hidden;
+}
+
+/******************************************/
+/* Menu */
+#menu {
+  display: block;
+  position: fixed;
+  float: left;
+  background-color:#3f3f3f;
+  overflow: hidden;
+  width: 100%;
+  border-bottom: 1px solid #000000;
+  z-index: 10;
+}
+
+#menu a {
+  float: left;
+  display: block;
+  color: #f2f2f2;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+/******************************************/
+/* Title */
+#title {
+  display: block;
+  float: left;
+  position: relative;
+  width: 100%;
+  margin-top: 50px;
+  padding-left: 15px;  
+  padding-right: 15px;
+}
+
+/******************************************/
+/* Content */
+#content {
+  display: block;
+  float: left;
+  position: relative;
+  width: 100%;
+  padding-top: 10px;  
+  padding-left: 40px;  
+  padding-right: 40px;  
+}
+
+/******************************************/
+/* gallery display */
+.item {
+  display: inline-block;
+  padding-top: 10px;  
+}
+
+.item_content {
+  display: block;
+  position: relative;
+  width: 215px;
+  height: 340px;
+  opacity: 0.80;
+  -webkit-transition: all 0.3s linear;
+  -moz-transition: all 0.3s linear;
+  transition: all 0.3s linear;
+  text-decoration: none;
+}
+
+.item_content:hover {
+  opacity: 1.0;
+}
+
+/******************************************/
+/* Dir style */
+.dir_cover {
+  height: 300px;
+}
+
+.dir_cover img {
+  position: relative;
+  display: block;
+  border-style: solid;
+  border-color: black;
+  border-width: 1px;
+  margin-left: auto;
+  margin-right: auto;
+  vertical-align: center;
+}
+
+.dir_cover {
+  width: 195px;
+  height: 280px;
+}
+
+.dir_cover::before,
+.dir_cover::after {
+  /* Add shadow to distinguish sheets from one another */
+  box-shadow: 2px 1px 1px rgba(0,0,0,0.15);
+}
+
+.dir_cover::before,
+.dir_cover::after {
+  content: "";
+  position: absolute;
+  width: 195px;
+  height: 280px;
+}
+
+/* Second sheet of paper */
+.dir_cover::before {
+  left: 4px;
+  top: 4px;
+  z-index: -1;
+  transform: rotate(-2deg);
+  background-color: #866058;
+}
+
+/* Third sheet of paper */
+.dir_cover::after {
+  left: 8px;
+  top: 8px;
+  z-index: -2;
+  transform: rotate(2deg);
+  background-color: #664E48;
+}
+
+/******************************************/
+/* Book style */
+.book_cover {
+  height: 300px;
+}
+
+.book_cover img {
+  position: relative;
+  display: block;
+  box-shadow: 3px 3px 8px 0 rgba(0,0,0,0.9);
+  border-style: solid;
+  border-color: black;
+  border-width: 1px;
+  margin-top: auto;
+  margin-bottom: auto;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/******************************************/
+/* Name */
+.item_name {
+  display: block;
+  height: 50px;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item_name p {
+  display: block;
+  text-align: center;
+  margin-top: 5px;
+  line-height: 110%; 
+  width: 195px;
+  margin-left: auto;
+  margin-right: auto;
+}
+

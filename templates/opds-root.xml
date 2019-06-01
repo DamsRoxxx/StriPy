@@ -1,0 +1,34 @@
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:pse="http://vaemendis.net/opds-pse/ns" xmlns:opds="http://opds-spec.org/2010/catalog" xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xml:lang="en">
+<id>15fab30f739c4bbfbc2cbce755fc8b41-opdsRoot</id>
+<title>StriPy ebooks catalog</title>
+<updated>2019-05-26T08:26:41+02:00</updated>
+<icon>/theme/favicon.ico</icon>
+<author>
+<name>StriPy server</name>
+<uri>http://vaemendis.net/ubooquity</uri>
+</author>
+<link type="application/atom+xml; profile=opds-catalog; kind=navigation" rel="self" href="/opdss/"/>
+<link type="application/atom+xml; profile=opds-catalog; kind=navigation" rel="start" href="/opds/"/>
+<link type="application/opensearchdescription+xml" rel="search" href="/opds/search"/>
+<entry>
+<title>All comics</title>
+<id>allContentFlat</id>
+<updated>2019-05-26T08:26:41+02:00</updated>
+<content type="html">All ebooks presented as a list.</content>
+<link type="application/atom+xml; profile=opds-catalog; kind=acquisition" rel="subsection" href="/opds/all"/>
+</entry>
+<entry>
+<title>Folders</title>
+<id>allContentFolder</id>
+<updated>2019-05-26T08:26:41+02:00</updated>
+<content type="html">All ebooks grouped by folder.</content>
+<link type="application/atom+xml; profile=opds-catalog; kind=navigation" rel="subsection" href="/opds/all?groupByFolder=true"/>
+</entry>
+<entry>
+<title>Latest comics</title>
+<id>latestContent</id>
+<updated>2019-05-26T08:26:41+02:00</updated>
+<content type="html">Latest ebooks added to the collection</content>
+<link type="application/atom+xml; profile=opds-catalog; kind=acquisition" rel="subsection" href="/opds/?latest=true"/>
+</entry>
+</feed>

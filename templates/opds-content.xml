@@ -1,0 +1,39 @@
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:pse="http://vaemendis.net/opds-pse/ns" xmlns:opds="http://opds-spec.org/2010/catalog" xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xml:lang="en">
+<id>15fab30f739c4bbfbc2cbce755fc8b41-opdsRoot</id>
+<title>StriPy ebooks catalog</title>
+<updated>2019-05-26T08:26:41+02:00</updated>
+<icon>/theme/favicon.ico</icon>
+<author>
+<name>StriPy server</name>
+<uri>http://vaemendis.net/ubooquity</uri>
+</author>
+<link type="application/atom+xml; profile=opds-catalog; kind=navigation" rel="self" href="/"/>
+<link type="application/atom+xml; profile=opds-catalog; kind=navigation" rel="start" href="/"/>
+<link type="application/opensearchdescription+xml" rel="search" href="/opds/search"/>
+	{% for item in items %}
+	{% if item[0] == 'book' %}
+	<entry>
+		<title>{{ item[2] }}</title>
+		<id>{{ item[1] }}</id>
+		<updated>2019-05-26T08:13:37+02:00</updated>
+		<content type="html">{{ item[2] }}</content>
+		<link type="image/jpeg" rel="http://opds-spec.org/image" href="{{ '/covers/' ~ item[4] ~ '.jpg' }}"/>
+		<link type="image/jpeg" rel="http://opds-spec.org/image/thumbnail" href="{{ '/covers/' ~ item[4] ~ '.jpg' }}"/>
+		<link type="image/jpeg" rel="http://vaemendis.net/opds-pse/stream" href="{{ '/covers/' ~ item[4] ~ '.jpg' }}" pse:count="32"/>
+		<link type="application/pdf" rel="http://opds-spec.org/acquisition" href="{{ '/' ~ item[0] ~ '/' ~ item[1] ~ '/toto.pdf' }}"/>
+		<!--link type="application/octet-stream" rel="http://opds-spec.org/acquisition" href="/opds-comics/comics/6520/Amstrad%20CPC%2003.cbz"/-->
+	</entry>
+	{% elif item[0] == 'dir' %}
+	<entry>
+		<title>{{ item[2] }}</title>
+		<id>{{ item[1] }}</id>
+		<updated>2019-05-26T08:21:18+02:00</updated>
+		<content type="html"/>
+		<link type="image/jpeg" rel="http://opds-spec.org/image" href="{{ '/covers/' ~ item[4] ~ '.jpg' }}"/>
+		<link type="image/jpeg" rel="http://opds-spec.org/image/thumbnail" href="{{ '/covers/' ~ item[4] ~ '.jpg' }}"/>
+		<link type="application/atom+xml; profile=opds-catalog; kind=acquisition" rel="subsection" href="{{ '/opds/' ~ item[1] }}"/>
+		<!--link type="application/atom+xml; profile=opds-catalog; kind=acquisition" rel="subsection" href="/opds-comics/6655/?displayFiles=true"/-->
+	</entry>
+	{% endif %}
+	{% endfor %}
+</feed>

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en-US">
+	<head>
+	  <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+	  <title>StriPY</title>
+	  <meta name="author" content="Damien Walz">
+	  <link rel="stylesheet" type="text/css" media="all" href="/css/styles.css">
+	  <link href="https://fonts.googleapis.com/css?family=Ramabhadra&display=swap" rel="stylesheet">
+	  <script type="text/javascript" charset="utf-8" src="/js/jquery-1.9.1.min.js"></script>
+	  <script type="text/javascript" charset="utf-8" src="/js/lazyload/jquery.lazyload.min.js"></script>
+	</head>
+
+	<body>
+		<script type="text/javascript">
+		//var status = setInterval(GetStatus, 1000);
+		
+		$(function(){
+			$("img.lazy").lazyload();
+		});
+		
+		function Update() {
+			$.post("/update");
+		};
+
+		function GetStatus() {
+			$.post("/status");
+		};
+		</script>
+		<div id="wrapper">
+			<div id="menu">
+				<a href="/">Home</a>
+				<a href="{{previous}}">Previous</a>
+				<a href="javascript:void(0)" onclick="Update()">Update</a>
+			</div>
+			<div id="title">
+				<h1>{{title}}</h1>
+			</div>			
+			<div id="content"> <!-- /begin #content -->
+				{% for item in items %}
+				<div class="item">
+					<a href="{{ "/" ~ item[0] ~ "/" ~ item[1] }}" title="{{ item[2] }}">
+						<div class="item_content">
+							<div class="item_cover">
+								<div class="{{item[0] ~ "_cover"}}"><img class="lazy" data-original="{{ "/covers/" ~ item[4] ~ ".jpg" }}" width=195 height=280></div>
+							</div>
+							<div class="item_name"><p>{{ item[2] }}</p></div>
+						</div>
+					</a>
+				</div>
+				{% endfor %}
+			</div> <!-- /end #content -->
+		</div>
+	</body>
+</html>
