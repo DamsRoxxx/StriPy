@@ -43,6 +43,12 @@ class WebLibrary(object):
 		self.template	= JINJA_ENV.get_template('main.html')
 		return self.template.render(title=title, previous=previous, items=library.getDirContent(id))
 		
+	def renderReader(self, id):
+		row = library.getBookInfos(id)
+		if row:
+			self.template	= JINJA_ENV.get_template('reader.html')
+			return self.template.render(id=row['ID'], directory_id=row['DIRECTORY_ID'], title=row['TITLE'], comicreader_root=OPDS_COMICREADER_ROOT)
+
 	def sendFile(self, id):
 		row = library.getBookInfos(id)
 		if row:
@@ -75,6 +81,11 @@ class WebLibrary(object):
 
 	@cherrypy.expose
 	def book(self, id):
+		cherrypy.log("------> Book")
+		return self.renderReader(id)
+
+	@cherrypy.expose
+	def download(self, id):
 		cherrypy.log("------> Book")
 		return self.sendFile(id)
 

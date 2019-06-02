@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en-US">
+	<head>
+	  <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+	  <title>{{title}}</title>
+	  <meta name="author" content="Damien Walz">
+	  <link rel="stylesheet" type="text/css" media="all" href="/css/reader.css">
+	  <link href="https://fonts.googleapis.com/css?family=Ramabhadra&display=swap" rel="stylesheet">
+	  <script type="text/javascript" charset="utf-8" src="/js/jquery-1.9.1.min.js"></script>
+	</head>
+
+	<body>
+		<script type="text/javascript">
+		const timeout 		= 3000;
+		var contextShown 	= true;
+		var timeoutID 		= undefined;
+		var CurrentPage 	= 0;
+		var PageCount 		= 10;
+		var Quality			= (Math.floor(screen.width / 1000.0) + 1) * 1000;
+				
+		function showContext() {
+			$('#menu').fadeIn(1000);
+			contextShown = true;
+		}
+
+		function hideContext() {
+			$('#menu').fadeOut(1000);
+			$("#wrapper").get(0).style.cursor = 'none';
+			contextShown = false;
+		}
+
+		function PreviousPage() {
+			console.log("PreviousPage()");
+			if( CurrentPage > 0){
+				CurrentPage--;
+				RefreshCurrentPage();
+			}
+		};
+
+		function NextPage() {
+			console.log("NextPage()");
+			if( CurrentPage < (PageCount - 1)){
+				CurrentPage++;
+				RefreshCurrentPage();
+			}
+		};
+		
+		function RefreshCurrentPage() {
+			var page = document.getElementById("page");
+			document.getElementById("context").innerHTML = (CurrentPage + 1) + " / " + PageCount;
+			page.src = "{{ comicreader_root ~ id }}" + "?page=" + CurrentPage + "&amp;width=" + Quality;
+		};
+		
+		function ItfEvent() {
+			$("#wrapper").get(0).style.cursor = 'default';
+			if (!contextShown) {
+				showContext();
+			} else {
+				window.clearTimeout(timeoutID);
+			}
+			timeoutID = window.setTimeout(hideContext, timeout);
+		};
+
+		window.addEventListener('wheel', function(e) {
+		  if (e.deltaY < 0) {
+			PreviousPage();
+		  }
+		  if (e.deltaY > 0) {
+			NextPage();
+		  }
+		});
+
+		$(document).ready(function() {
+			$( "#content" ).mousemove(function( event ) {
+				ItfEvent();
+			});
+
+			RefreshCurrentPage();
+			ItfEvent();
+		});
+		</script>
+		<div id="wrapper">
+			<div id="menu">
+				<div id="menu-left">
+					<a href="{{ '/dir/' ~ directory_id }}">Return to library</a>
+				</div>
+				<div id="menu-right">
+					<a href="{{ '/download/' ~ id }}">Download</a>
+				</div>
+				<div id="menu-center">
+					<a href="javascript:void(0)" onclick="PreviousPage()">Previous page</a>
+					<p id="context"></p>
+					<a href="javascript:void(0)" onclick="NextPage()">Next page</a>
+				</div>
+			</div>
+			<div id="content">
+				<img id="page" class="fit-page"/>
+			</div>
+		</div>
+	</body>
+</html>
