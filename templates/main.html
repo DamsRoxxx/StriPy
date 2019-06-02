@@ -38,12 +38,12 @@
 			<div id="content"> <!-- /begin #content -->
 				{% for item in items %}
 				<div class="item">
-					<a href="{{ "/" ~ item[0] ~ "/" ~ item[1] }}" title="{{ item[2] }}">
+					<a href="{{ "/" ~ item['TYPE'] ~ "/" ~ item['ID'] }}" title="{{ item['TITLE'] }}">
 						<div class="item_content">
 							<div class="item_cover">
-								<div class="{{item[0] ~ "_cover"}}"><img class="lazy" data-original="{{ "/covers/" ~ item[4] ~ ".jpg" }}" width=195 height=280></div>
+								<div class="{{item['TYPE'] ~ "_cover"}}"><img class="lazy" data-original="{{ "/covers/" ~ item['COVER_ID'] ~ ".jpg" }}" width=195 height=280></div>
 							</div>
-							<div class="item_name"><p>{{ item[2] }}</p></div>
+							<div class="item_name"><p>{{ item['TITLE'] }}</p></div>
 						</div>
 					</a>
 				</div>
