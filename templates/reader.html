@@ -7,11 +7,13 @@
 	  <link rel="stylesheet" type="text/css" media="all" href="/css/reader.css">
 	  <link href="https://fonts.googleapis.com/css?family=Ramabhadra&display=swap" rel="stylesheet">
 	  <script type="text/javascript" charset="utf-8" src="/js/jquery-1.9.1.min.js"></script>
+	  <script type="text/javascript" charset="utf-8" src="/js/hammer.min.js"></script>
 	</head>
 
 	<body>
 		<script type="text/javascript">
 		const timeout 		= 3000;
+		var hammertime		= null;
 		var contextShown 	= true;
 		var timeoutID 		= undefined;
 		var CurrentPage 	= 0;
@@ -77,6 +79,38 @@
 			timeoutID = window.setTimeout(hideContext, timeout);
 		};
 
+		function ToggleFullscreen() {
+		  // if already full screen; exit
+		  // else go fullscreen
+		  if (
+			document.fullscreenElement ||
+			document.webkitFullscreenElement ||
+			document.mozFullScreenElement ||
+			document.msFullscreenElement
+		  ) {
+			if (document.exitFullscreen) {
+			  document.exitFullscreen();
+			} else if (document.mozCancelFullScreen) {
+			  document.mozCancelFullScreen();
+			} else if (document.webkitExitFullscreen) {
+			  document.webkitExitFullscreen();
+			} else if (document.msExitFullscreen) {
+			  document.msExitFullscreen();
+			}
+		  } else {
+			element = $('#wrapper').get(0);
+			if (element.requestFullscreen) {
+			  element.requestFullscreen();
+			} else if (element.mozRequestFullScreen) {
+			  element.mozRequestFullScreen();
+			} else if (element.webkitRequestFullscreen) {
+			  element.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+			} else if (element.msRequestFullscreen) {
+			  element.msRequestFullscreen();
+			}
+		  }
+		};
+
 		window.addEventListener('wheel', function(e) {
 		  if (e.deltaY < 0) {
 			PreviousPage();
@@ -85,10 +119,20 @@
 			NextPage();
 		  }
 		});
-
+				
 		$(document).ready(function() {
 			$( "#content" ).mousemove(function( event ) {
 				ItfEvent();
+			});
+
+			var hammertime = new Hammer(document.getElementById('content'));
+			hammertime.on('swipe', function(ev) {
+				if(ev.deltaX > 0){
+					PreviousPage();
+				} else {
+					NextPage();
+				}
+				console.log(ev.deltaX);
 			});
 
 			RefreshCurrentPage();
@@ -101,6 +145,7 @@
 					<a href="{{ '/dir/' ~ directory_id }}">Return to library</a>
 				</div>
 				<div id="menu-right">
+					<a href="javascript:void(0)" onclick="ToggleFullscreen()">Fullscreen</a>
 					<a href="{{ '/download/' ~ id }}">Download</a>
 				</div>
 				<div id="menu-center">
