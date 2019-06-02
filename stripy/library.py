@@ -3,13 +3,14 @@ import collections
 import sqlite3
 import logging
 import os
-from stripy.reader import *
+from stripy.ebook import *
 from PIL import Image
 
 class Library:
 	SCHEMA 			= 'schema.sql'
 	SUPPORTED_EXT 	= ['.pdf', '.cbz', '.cbr', '.epub']
 	THUMBIMG_EXT	= '.jpg'
+	THUMB_WIDTH 	= 300
 
 	#Library management statements
 	INSERT_LIBRARY = 'INSERT INTO LIBRARY (PATH) VALUES (?)'
@@ -28,7 +29,7 @@ class Library:
 	
 	# Book management statements
 	SELECT_BOOK = 'SELECT ID FROM BOOK WHERE LIBRARY_ID = ? AND DIRECTORY_ID = ? AND TITLE = ?'
-	INSERT_BOOK = 'INSERT INTO BOOK (LIBRARY_ID, DIRECTORY_ID, TITLE, FILENAME, EXT, PATH) VALUES (?, ?, ?, ?, ?, ?)'
+	INSERT_BOOK = 'INSERT INTO BOOK (LIBRARY_ID, DIRECTORY_ID, TITLE, FILENAME, EXT, PAGE_COUNT, PATH) VALUES (?, ?, ?, ?, ?, ?, ?)'
 	DELETE_BOOK = 'DELETE FROM BOOK WHERE ID = ?'
 	SELECT_BOOK_DIRECTORY = 'SELECT ID FROM BOOK WHERE DIRECTORY_ID = ?'
 	DELETE_BOOK_DIRECTORY = 'DELETE FROM BOOK WHERE DIRECTORY_ID = ?'
@@ -37,7 +38,7 @@ class Library:
 	SELECT_ALL_BOOK = 'SELECT ID, PATH FROM BOOK'
 	
 	# Content statements
-	SELECT_BOOK_INFOS	=	"SELECT ID, DIRECTORY_ID, TITLE, PATH FROM BOOK WHERE ID = ?"
+	SELECT_BOOK_INFOS	=	"SELECT ID, DIRECTORY_ID, TITLE, PAGE_COUNT, PATH FROM BOOK WHERE ID = ?"
 	SELECT_ROOT_CONTENT = 	"SELECT 'dir' AS TYPE, ID AS ID, TITLE AS TITLE, PATH AS PATH, COVER_ID AS COVER_ID, NULL AS FILENAME, NULL AS EXT FROM DIRECTORY WHERE PARENT_ID IS NULL \
 							UNION \
 							SELECT 'book' AS TYPE, ID AS ID, TITLE AS TITLE, PATH AS PATH, COALESCE(ID, 0) AS COVER_ID, FILENAME AS FILENAME, EXT AS EXT FROM BOOK WHERE DIRECTORY_ID IS NULL  \
@@ -141,23 +142,35 @@ class Library:
 		logging.debug('Search book ({}, {}, {})...'.format(libraryID, parentID, title))	
 		bookID = None
 		coverID = None
+		
+		# Search ebook infos
 		cursor = self.connection.cursor()		
 		cursor.execute(self.SELECT_BOOK, (libraryID, parentID, title))		
 		row = cursor.fetchone()
 		if row:
+			# Found
 			bookID = row['ID']
 			logging.debug('Book ({}, {}, {}) found : Id = {}'.format(libraryID, parentID, title, bookID))	
+
+			# Search ebook thumb image
 			coverName = '{:d}{}'.format(bookID, self.THUMBIMG_EXT)
 			coverPath = os.path.join(self.coverPath, coverName)
 			logging.debug('Book ({}, {}, {}) search cover thumb image...'.format(libraryID, parentID, title))	
 		else:
-			cursor.execute(self.INSERT_BOOK, (libraryID, parentID, title, filename, ext, path))
+			# Not found
+			# Open ebook file
+			ebookfile = eBook.Open(path)
+
+			# Insert ebook infos
+			cursor.execute(self.INSERT_BOOK, (libraryID, parentID, title, filename, ext, ebookfile.pageCount(), path))
 			bookID = cursor.lastrowid
 			logging.debug('Book ({}, {}, {}) created : Id = {}'.format(libraryID, parentID, title, bookID))	
+
+			# Create ebook thumb image
 			logging.debug('Book ({}, {}, {}) create cover thumb...'.format(libraryID, parentID, title))
 			coverName = '{:d}{}'.format(bookID, self.THUMBIMG_EXT)
 			coverPath = os.path.join(self.coverPath, coverName)
-			Reader.thumbFirstPage(path, coverPath)
+			ebookfile.renderPage(coverPath, 0, Library.THUMB_WIDTH)
 			logging.debug('Book ({}, {}, {}) Cover thumb image = \'{}\''.format(libraryID, parentID, title, coverPath))				
 				
 		if os.path.isfile(coverPath): 

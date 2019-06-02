@@ -9,7 +9,8 @@ import xml.etree.ElementTree as ET
 from jinja2 import Environment, FileSystemLoader
 from cherrypy.lib import static
 from stripy.library import *
-from stripy.reader import *
+from stripy.ebook import *
+from stripy.dict import *
 
 # Initialize environment
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -47,7 +48,7 @@ class WebLibrary(object):
 		row = library.getBookInfos(id)
 		if row:
 			self.template	= JINJA_ENV.get_template('reader.html')
-			return self.template.render(id=row['ID'], directory_id=row['DIRECTORY_ID'], title=row['TITLE'], comicreader_root=OPDS_COMICREADER_ROOT)
+			return self.template.render(id=row['ID'], directory_id=row['DIRECTORY_ID'], title=row['TITLE'], page_count=row['PAGE_COUNT'], comicreader_root=OPDS_COMICREADER_ROOT)
 
 	def sendFile(self, id):
 		row = library.getBookInfos(id)
@@ -193,6 +194,7 @@ class UbooquityOPDSBook(object):
 @cherrypy.expose
 class UbooquityOPDSReader(object):
 	library 	= None
+	cache		= CacheDict(size=10, timeout=600)
 
 	def __init__(self, library):
 		self.library = library		
@@ -202,24 +204,37 @@ class UbooquityOPDSReader(object):
 		cherrypy.log("------> UbooquityOPDSReader(id={})".format(id))
 		row = library.getBookInfos(id)
 		if row:
-			path = row['PATH']
-			page = 0
-			width = Reader.THUMB_WIDTH
+			ebookfile 	= None
+			path 		= row['PATH']
+			page 		= 0
+			width 		= Library.THUMB_WIDTH
+			
+			# Cache ebook file
+			if path in self.cache:
+				ebookfile = self.cache.get(path)
+			else:
+				ebookfile 			= eBook.Open(path)
+				self.cache[path] 	= ebookfile
+				
+			# Handle parameters
 			if 'page' in params:
 				page = int(params['page'])
 				cherrypy.log("------> UbooquityOPDSReader(id={}) : page={}".format(id, page))
 
-				if 'width' in params:
-					width = int(params['width'])
-					cherrypy.log("------> UbooquityOPDSReader(id={}) : width={}".format(id, width))
+			if 'width' in params:
+				width = int(params['width'])
+				cherrypy.log("------> UbooquityOPDSReader(id={}) : width={}".format(id, width))
 			
 			imgname = '{}_{}_{}.jpg'.format(id, page, width)
 			imgpath = os.path.join(TMP_DIR, imgname)
 			cherrypy.log("------> UbooquityOPDSReader(id={}) : imgpath={}".format(id, imgpath))
+			
+			# Render page if not in cache
 			if not os.path.isfile(imgpath):
 				cherrypy.log("------> UbooquityOPDSReader(id={}) : imgpath={} create image for ({}, {})...".format(id, imgpath, page, width))
-				Reader.renderPage(path, imgpath, page, width)
+				ebookfile.renderPage(imgpath, page, width)
 
+			# Provide page if not in cache
 			if os.path.isfile(imgpath):
 				cherrypy.log("------> UbooquityOPDSReader(id={}) : imgpath={} image found for ({}, {})".format(id, imgpath, page, width))
 				return static.serve_file(imgpath, 'image/jpeg', 'inline', imgname)		
