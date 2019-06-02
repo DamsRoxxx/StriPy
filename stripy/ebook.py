@@ -75,9 +75,11 @@ class FITZBook(eBook):
 	def pageCount(self):
 		return self.doc.pageCount;
 
-	def renderPage(self, imgPath, page, width):
-		page 	= self.doc.loadPage(page)
-		pix 	= page.getPixmap(colorspace=fitz.csRGB, alpha=False)
+	def renderPage(self, imgPath, index, width):
+		page 		= self.doc.loadPage(index)
+		pageWidth 	= page.rect.width
+		zoomFactor	= width/pageWidth
+		pix 		= page.getPixmap(matrix = fitz.Matrix(zoomFactor, zoomFactor), colorspace=fitz.csRGB, alpha=False)
 
 		# Convert to a PIL image
 		img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
