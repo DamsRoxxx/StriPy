@@ -29,10 +29,26 @@
 			contextShown = false;
 		}
 
+		function FirstPage() {
+			console.log("FirstPage()");
+			if( CurrentPage != 0){
+				CurrentPage = 0;
+				RefreshCurrentPage();
+			}
+		};
+
 		function PreviousPage() {
 			console.log("PreviousPage()");
 			if( CurrentPage > 0){
 				CurrentPage--;
+				RefreshCurrentPage();
+			}
+		};
+
+		function LastPage() {
+			console.log("LastPage()");
+			if( CurrentPage != (PageCount - 1)){
+				CurrentPage = (PageCount - 1);
 				RefreshCurrentPage();
 			}
 		};
@@ -88,9 +104,11 @@
 					<a href="{{ '/download/' ~ id }}">Download</a>
 				</div>
 				<div id="menu-center">
+					<a href="javascript:void(0)" onclick="FirstPage()">First page</a>
 					<a href="javascript:void(0)" onclick="PreviousPage()">Previous page</a>
 					<p id="context"></p>
 					<a href="javascript:void(0)" onclick="NextPage()">Next page</a>
+					<a href="javascript:void(0)" onclick="LastPage()">Last page</a>
 				</div>
 			</div>
 			<div id="content">
