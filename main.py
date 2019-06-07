@@ -1,10 +1,14 @@
 import cherrypy
+import cherrypy.process.plugins
 import logging
 import os
 import re
 import sys
 import sqlite3
 import threading
+import datetime
+import time
+from stat import S_ISREG, ST_CTIME, ST_MODE
 import xml.etree.ElementTree as ET
 from jinja2 import Environment, FileSystemLoader
 from cherrypy.lib import static
@@ -13,14 +17,15 @@ from stripy.ebook import *
 from stripy.dict import *
 
 # Initialize environment
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-JINJA_ENV 	= Environment(loader=FileSystemLoader('templates'))
-LOG_DIR		= os.path.join(CURRENT_DIR, r'log')
-LOG_FILE	= os.path.join(LOG_DIR, r'stripy-log')
-DATA_DIR	= os.path.join(CURRENT_DIR, r'data')
-COVER_DIR	= os.path.join(DATA_DIR, r'covers')
-TMP_DIR		= os.path.join(DATA_DIR, r'tmp')
-OPDS_ROOT	= '/opds-comics/'
+CLEANING_PERIOD = 3600
+CURRENT_DIR 	= os.path.dirname(os.path.abspath(__file__))
+JINJA_ENV 		= Environment(loader=FileSystemLoader('templates'))
+LOG_DIR			= os.path.join(CURRENT_DIR, r'log')
+LOG_FILE		= os.path.join(LOG_DIR, r'stripy-log')
+DATA_DIR		= os.path.join(CURRENT_DIR, r'data')
+COVER_DIR		= os.path.join(DATA_DIR, r'covers')
+TMP_DIR			= os.path.join(DATA_DIR, r'tmp')
+OPDS_ROOT		= '/opds-comics/'
 OPDS_COMICS_ROOT = '/opds-comics/comics/'
 OPDS_COMICREADER_ROOT = '/opds-comics/comicreader/'
 
@@ -247,6 +252,33 @@ class UbooquityOPDSReader(object):
 
 	def DELETE(self):
 		return
+		
+def CleanTmp():
+	logging.info('Removing old cached images (older than {} seconds) from \'{}\'...'.format(CLEANING_PERIOD, TMP_DIR))
+
+	# get all entries in the directory w/ stats
+	entries = (os.path.join(TMP_DIR, fn) for fn in os.listdir(TMP_DIR))
+	entries = ((os.stat(path), path) for path in entries)
+
+	# leave only regular files, insert creation date
+	entries = ((stat[ST_CTIME], path)
+			   for stat, path in entries if S_ISREG(stat[ST_MODE]))
+	#NOTE: on Windows `ST_CTIME` is a creation date 
+	#  but on Unix it could be something else
+	#NOTE: use `ST_MTIME` to sort by a modification date
+
+	# foreach file
+	for cdate, path in sorted(entries):
+		filedate = datetime.datetime.strptime(time.ctime(cdate), "%a %b %d %H:%M:%S %Y")
+		if filedate < (datetime.datetime.now() - datetime.timedelta(seconds=CLEANING_PERIOD)):
+			logging.debug('Removing old file ({}) \'{}\'...'.format(filedate, path))
+			try:
+				os.remove(path)
+			except:
+				logging.error('Error while trying to remove old file \'{}\'!'.format(path))
+		else:
+			# Exist as there is no old file
+			return
 
 if __name__ == '__main__':
 	#*****************************************************************
@@ -289,6 +321,12 @@ if __name__ == '__main__':
 	cherrypy.tree.mount(UbooquityOPDSReader(library), OPDS_COMICREADER_ROOT, opds_conf)
 	
 	#*****************************************************************
+	# Start background tasks
+	CleanTmp()
+	tmpCleaner = cherrypy.process.plugins.BackgroundTask(CLEANING_PERIOD, CleanTmp)
+	tmpCleaner.start()
+
+	#*****************************************************************
 	# Start server
 	if hasattr(cherrypy.engine, 'block'):
 		# 3.1 syntax
@@ -298,3 +336,7 @@ if __name__ == '__main__':
 		# 3.0 syntax
 		cherrypy.server.quickstart()
 		cherrypy.engine.start()
+
+	#*****************************************************************
+	# Stop background tasks
+	tmpCleaner.cancel()
