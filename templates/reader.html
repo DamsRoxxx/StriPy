@@ -125,6 +125,15 @@
 				ItfEvent();
 			});
 
+			$( "#content" ).click(function( event ) {
+				if( event.pageX < ($( "#content" ).width() * 0.1) ) {
+					PreviousPage();
+				}
+				else if ( event.pageX > ($( "#content" ).width() * 0.9) ) {
+					NextPage();
+				}
+			});
+
 			var hammertime = new Hammer(document.getElementById('content'));
 			hammertime.on('swipe', function(ev) {
 				if(ev.deltaX > 0){
