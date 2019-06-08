@@ -25,16 +25,30 @@
 		function GetStatus() {
 			$.post("/status");
 		};
+		
+		var position = $(window).scrollTop(); 
+		$(window).scroll(function() {
+			var scroll = $(window).scrollTop();
+			if(scroll > position) {
+				$('#menu').slideUp(100)
+			} else {
+				$('#menu').slideDown(100);
+			}
+			position = scroll;
+		});
 		</script>
 		<div id="wrapper">
-			<div id="menu">
-				<a href="/">Home</a>
-				<a href="{{previous}}">Previous</a>
-				<a href="javascript:void(0)" onclick="Update()">Update</a>
+			<div id="header">
+				<div id="menu">
+					<p>StriPy</p>
+					<a href="/">Home</a>
+					<a href="{{previous}}">Previous</a>
+					<a href="javascript:void(0)" onclick="Update()">Update</a>
+				</div>
+				<div id="title">
+					<h1>{{section}}</h1>
+				</div>			
 			</div>
-			<div id="title">
-				<h1>{{section}}</h1>
-			</div>			
 			<div id="content"> <!-- /begin #content -->
 				{% for item in items %}
 				<div class="item">
