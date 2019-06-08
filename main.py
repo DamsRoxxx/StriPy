@@ -38,7 +38,7 @@ class WebLibrary(object):
 		
 	def renderDir(self, id = None):
 		title 		= 'StriPy'
-		section		= 'Bibliothèques'
+		section		= 'Libraries'
 		previous 	= '/'
 	
 		if id:
