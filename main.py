@@ -37,17 +37,19 @@ class WebLibrary(object):
 		self.library = library
 		
 	def renderDir(self, id = None):
-		title 		= 'Bibliothèques'
+		title 		= 'StriPy'
+		section		= 'Bibliothèques'
 		previous 	= '/'
 	
 		if id:
 			dirInfos = library.getDirInfos(id)
-			title = dirInfos.title
+			title 	= dirInfos.title
+			section = dirInfos.title
 			if dirInfos.parent_id:
 				previous = '/dir/{}'.format(dirInfos.parent_id)
 	
 		self.template	= JINJA_ENV.get_template('main.html')
-		return self.template.render(title=title, previous=previous, items=library.getDirContent(id))
+		return self.template.render(title=title, section=section, previous=previous, items=library.getDirContent(id))
 		
 	def renderReader(self, id):
 		row = library.getBookInfos(id)
