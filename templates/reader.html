@@ -122,14 +122,20 @@
 				
 		$(document).ready(function() {
 			$( "#content" ).mousemove(function( event ) {
-				ItfEvent();
+				width = $( "#content" ).width();
+				if( event.pageX > ( width * 0.1) ) {
+					if ( event.pageX < ( width * 0.9) ) {
+						ItfEvent();
+					}
+				}
 			});
 
 			$( "#content" ).click(function( event ) {
-				if( event.pageX < ($( "#content" ).width() * 0.1) ) {
+				width = $( "#content" ).width();
+				if( event.pageX < ( width * 0.1) ) {
 					PreviousPage();
 				}
-				else if ( event.pageX > ($( "#content" ).width() * 0.9) ) {
+				else if ( event.pageX > ( width * 0.9) ) {
 					NextPage();
 				}
 			});
