@@ -1,3 +1,54 @@
+:root {
+	--menu-height: 50px;
+	--menu-item-font-size: 16px;
+	--menu-item-padding: 10px;
+	--control-width: 640px;
+	--control-bottom: 50px;
+}
+
+/******************************************/
+/* Tablet in landscape */
+@media (orientation: portrait) and (max-device-width: 640px) {
+	:root {
+		--menu-height: 110px;
+		--menu-item-font-size: 32px;
+		--menu-item-padding: 14px;
+		--control-width: 960px;
+		--control-bottom: 100px;
+	}
+	#wrapper:-webkit-full-screen {
+		--menu-height: 30px;
+		--menu-item-font-size: 10px;
+		--menu-item-padding: 6px;
+		--control-width: 360px;
+		--control-bottom: 0;
+	}
+
+	#wrapper:-moz-full-screen {
+		--menu-height: 30px;
+		--menu-item-font-size: 10px;
+		--menu-item-padding: 6px;
+		--control-width: 360px;
+		--control-bottom: 0;
+	}
+
+	#wrapper:-ms-fullscreen {
+		--menu-height: 30px;
+		--menu-item-font-size: 10px;
+		--menu-item-padding: 6px;
+		--control-width: 360px;
+		--control-bottom: 0;
+	}
+
+	#wrapper:fullscreen { 
+		--menu-height: 30px;
+		--menu-item-font-size: 10px;
+		--menu-item-padding: 6px;
+		--control-width: 360px;
+		--control-bottom: 0;
+	}
+}
+
 html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
   margin: 0;
   padding: 0;
@@ -60,40 +111,45 @@ margin-left: 2em;
 	height: auto;
 	overflow: hidden;
 	pointer-events: all;
+	width:100%;
 }
 
 /******************************************/
 /* Menu */
 #menu {
-  display: block;
-  position: fixed;
-  float: left;
-  background-color:#3f3f3f;
-  overflow: hidden;
-  width: 100%;
-  border-bottom: 1px solid #000000;
-  z-index: 10;
-  -webkit-transition: opacity 1.5s ease-in-out;
-  -moz-transition: opacity 1.5s ease-in-out;
-  transition: opacity 1.5s ease-in-out;
+	height: var(--menu-height);
+	display: block;
+	position: fixed;
+	float: left;
+	background-color: rgba(63, 63, 63, 0.9);
+	overflow: hidden;
+	width: 100%;
+	border-bottom: 1px solid #000000;
+	z-index: 10;
 }
 
 #menu a {
-  float: left;
-  display: block;
-  color: #f2f2f2;
-  text-align: center;
-  padding: 14px 16px;
-  text-decoration: none;
+	font-size: var(--menu-item-font-size);
+	line-height: var(--menu-height);
+	padding-left: var(--menu-item-padding);
+	padding-right: var(--menu-item-padding);
+	float: left;
+	display: block;
+	color: #f2f2f2;
+	text-align: center;
+	text-decoration: none;
 }
 
 #menu p {
-  float: left;
-  display: block;
-  color: #f2f2f2;
-  text-align: center;
-  padding: 14px 16px;
-  text-decoration: none;
+	font-size: var(--menu-item-font-size);
+	line-height: var(--menu-height);
+	padding-left: var(--menu-item-padding);
+	padding-right: var(--menu-item-padding);
+	float: left;
+	display: block;
+	color: #f2f2f2;
+	text-align: center;
+	text-decoration: none;
 }
 
 #menu-left {
@@ -107,6 +163,53 @@ margin-left: 2em;
 
 #menu-right {
 	float:right;
+}
+
+/******************************************/
+/* Menu */
+#control {
+	width: var(--control-width);
+	height: var(--menu-height);
+	bottom: var(--control-bottom);
+	display: block;
+	position: absolute;
+	background-color: rgba(63, 63, 63, 0.9);
+	overflow: hidden;
+	z-index: 10;
+	left: 0;
+	right: 0;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#control a {
+	font-size: var(--menu-item-font-size);
+	line-height: var(--menu-height);
+	padding-left: var(--menu-item-padding);
+	padding-right: var(--menu-item-padding);
+	float: left;
+	display: block;
+	color: #f2f2f2;
+	text-align: center;
+	text-decoration: none;
+}
+
+#control p {
+	font-size: var(--menu-item-font-size);
+	line-height: var(--menu-height);
+	padding-left: var(--menu-item-padding);
+	padding-right: var(--menu-item-padding);
+	float: left;
+	display: block;
+	color: #f2f2f2;
+	text-align: center;
+	text-decoration: none;
+}
+
+#control-center {
+	display: table;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 /******************************************/

@@ -21,12 +21,14 @@
 		var Quality			= (Math.floor(screen.width / 1000.0) + 1) * 1000;
 				
 		function showContext() {
-			$('#menu').fadeIn(1000);
+			$('#menu').fadeIn(50);
+			$('#control').fadeIn(50);
 			contextShown = true;
 		}
 
 		function hideContext() {
-			$('#menu').fadeOut(1000);
+			$('#menu').fadeOut(50);
+			$('#control').fadeOut(50);
 			$("#wrapper").get(0).style.cursor = 'none';
 			contextShown = false;
 		}
@@ -163,16 +165,18 @@
 					<a href="javascript:void(0)" onclick="ToggleFullscreen()">Fullscreen</a>
 					<a href="{{ '/download/' ~ id }}">Download</a>
 				</div>
-				<div id="menu-center">
+			</div>
+			<div id="content">
+				<img id="page" class="fit-page"/>
+			</div>
+			<div id="control">
+				<div id="control-center">
 					<a href="javascript:void(0)" onclick="FirstPage()">First page</a>
 					<a href="javascript:void(0)" onclick="PreviousPage()">Previous page</a>
 					<p id="context"></p>
 					<a href="javascript:void(0)" onclick="NextPage()">Next page</a>
 					<a href="javascript:void(0)" onclick="LastPage()">Last page</a>
 				</div>
-			</div>
-			<div id="content">
-				<img id="page" class="fit-page"/>
 			</div>
 		</div>
 	</body>
