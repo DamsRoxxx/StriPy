@@ -20,6 +20,14 @@
 }
 
 /******************************************/
+/* Tablet in landscape */
+@media (orientation: landscape) and (max-device-width: 1024px) {
+	:root {
+		--content-padding: 20px;
+	}	
+}
+
+/******************************************/
 /* Portrait */
 @media (orientation: portrait) {
 	:root {
@@ -29,7 +37,27 @@
 
 /******************************************/
 /* Tablet in landscape */
-@media (orientation: portrait) and (max-width: 640px) {
+@media (orientation: portrait) and (max-device-width: 640px) {
+	:root {
+		--menu-height: 110px;
+		--menu-title-font-size: 72px;
+		--menu-item-font-size: 32px;
+		--menu-item-height: 80px;
+		--menu-item-padding: 28px;
+		--title-font-size: 72px;
+		--header-height: 250px;
+		--content-padding: 55px;
+		--item-padding: 20px;
+		--item-width: 420px;
+		--item-height: 680px;
+		--item-cover-height: 594px;
+		--item-title-height: 70px;
+		--item-title-font-size: 28px;
+		--book-cover-width: 420px;
+		--book-cover-height: 594px;
+		--dir-cover-width: 400px;
+		--dir-cover-height: 564px;
+	}
 }
 
 html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
