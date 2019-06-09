@@ -46,16 +46,16 @@
 					<a href="javascript:void(0)" onclick="Update()">Update</a>
 				</div>
 				<div id="title">
-					<h1>{{section}}</h1>
+					<p>{{section}}</p>
 				</div>			
 			</div>
 			<div id="content"> <!-- /begin #content -->
 				{% for item in items %}
 				<div class="item">
-					<a href="{{ "/" ~ item['TYPE'] ~ "/" ~ item['ID'] }}" title="{{ item['TITLE'] }}">
+					<a href="{{ '/' ~ item['TYPE'] ~ '/' ~ item['ID'] }}" title="{{ item['TITLE'] }}">
 						<div class="item_content">
 							<div class="item_cover">
-								<div class="{{item['TYPE'] ~ "_cover"}}"><img class="lazy" data-original="{{ "/covers/" ~ item['COVER_ID'] ~ ".jpg" }}" width=195 height=280></div>
+								<div class="{{item['TYPE'] ~ '_cover'}}"><img class="lazy" data-original="{{ '/covers/' ~ item['COVER_ID'] ~ '.jpg' }}"></div>
 							</div>
 							<div class="item_name"><p>{{ item['TITLE'] }}</p></div>
 						</div>
