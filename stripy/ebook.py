@@ -96,7 +96,7 @@ class ArchiveBook(eBook):
 		if infolist:
 			# Get pages images ordered
 			logging.debug('Initialize archive eBook file ({}) : Filtering and sorting image files...'.format(filePath))	
-			self.pages = sorted([page for page in infolist if eBookImgTools.isImgFile(page.filename)], key=lambda fileinfo: fileinfo.filename)
+			self.pages = sorted([page for page in infolist if eBookImgTools.isImgFile(page.filename)], key=lambda fileinfo: fileinfo.filename.lower())
 			logging.debug('Initialize archive eBook file ({}) : Page Count = {}'.format(filePath, self.pageCount()))	
 
 	def pageCount(self):
