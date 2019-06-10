@@ -16,15 +16,8 @@
 		--control-width: 960px;
 		--control-bottom: 100px;
 	}
+	
 	#wrapper:-webkit-full-screen {
-		--menu-height: 30px;
-		--menu-item-font-size: 10px;
-		--menu-item-padding: 6px;
-		--control-width: 360px;
-		--control-bottom: 0;
-	}
-
-	#wrapper:-moz-full-screen {
 		--menu-height: 30px;
 		--menu-item-font-size: 10px;
 		--menu-item-padding: 6px;
@@ -46,6 +39,14 @@
 		--menu-item-padding: 6px;
 		--control-width: 360px;
 		--control-bottom: 0;
+	}
+
+	#wrapper:-moz-full-screen {
+		--menu-height: 110px;
+		--menu-item-font-size: 32px;
+		--menu-item-padding: 14px;
+		--control-width: 960px;
+		--control-bottom: 100px;
 	}
 }
 
