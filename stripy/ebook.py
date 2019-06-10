@@ -27,10 +27,10 @@ class eBookImgTools:
 			img.resize((width, int(width * float(imgHeight/imgWidth))), Image.ANTIALIAS)
 
 			# Save image
-			img.save(imgPath, quality=80, optimize=True, progressive=True)
+			img.convert('RGB').save(imgPath, quality=80, optimize=True, progressive=True)
 		else:
 			# Save image
-			img.save(imgPath)
+			img.convert('RGB').save(imgPath)
 
 class eBook(object):
 	SUPPORTED_EXT 	= []

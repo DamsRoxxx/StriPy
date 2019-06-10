@@ -32,6 +32,7 @@ library = Library(datadir)
 library.addLibraryPath(r'\\Isengard\eBooks\ORDERED\Jeux de Rôle\English\Stormbringer - Elric')
 library.addLibraryPath(r'\\Isengard\eBooks\ORDERED\\Comics\Star Wars')
 library.addLibraryPath(r'\\Isengard\eBooks\ORDERED\Magazines')
+library.addLibraryPath(r'\\Isengard\eBooks\ORDERED\Mangas')
 library.update()
 
 '''
