@@ -26,6 +26,19 @@
 			$.post("/status");
 		};
 		
+		function EnterItem(item) {
+			var position = item.offset()
+			$('#item_link').attr("href", item.data("link"));
+			$('#item_ui').css({top: position.top, left: position.left, position:'absolute'});
+			$('#item_ui').show();
+			$('#ui_play').animate({opacity: 0.8}, 150);			
+		};
+
+		function LeaveItem(item) {
+			$('#ui_play').css({opacity: 0});			
+			$('#item_ui').hide();
+		};
+		
 		var position = $(window).scrollTop(); 
 		$(window).scroll(function() {
 			var scroll = $(window).scrollTop();
@@ -52,17 +65,21 @@
 			<div id="content"> <!-- /begin #content -->
 				{% for item in items %}
 				<div class="item">
-					<a href="{{ '/' ~ item['TYPE'] ~ '/' ~ item['ID'] }}" title="{{ item['TITLE'] }}">
-						<div class="item_content">
-							<div class="item_cover">
-								<div class="{{item['TYPE'] ~ '_cover'}}"><img class="lazy" data-original="{{ '/covers/' ~ item['COVER_ID'] ~ '.jpg' }}"></div>
-							</div>
-							<div class="item_name"><p>{{ item['TITLE'] }}</p></div>
+					<div class="item_content">
+						<div class="item_cover" onmouseenter="EnterItem($(this))" data-link="{{ '/' ~ item['TYPE'] ~ '/' ~ item['ID'] }}">
+							<div class="{{item['TYPE'] ~ '_cover'}}"><img class="lazy" data-original="{{ '/covers/' ~ item['COVER_ID'] ~ '.jpg' }}"/></div>
 						</div>
-					</a>
+						<div class="item_name"><a href="{{ '/' ~ item['TYPE'] ~ '/' ~ item['ID'] }}">{{ item['TITLE'] }}</a></div>
+					</div>
 				</div>
 				{% endfor %}
 			</div> <!-- /end #content -->
+			<div id="item_ui" onmouseleave="LeaveItem($(this))">
+				<a id="item_link">
+					<span class="linkSpanner"></span>
+				</a>
+				<img id="ui_play" src="/images/play.png"/>
+			</div>
 		</div>
 	</body>
 </html>
