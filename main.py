@@ -54,8 +54,12 @@ class WebLibrary(object):
 	def renderReader(self, id):
 		row = library.getBookInfos(id)
 		if row:
-			self.template	= JINJA_ENV.get_template('reader.html')
-			return self.template.render(id=row['ID'], directory_id=row['DIRECTORY_ID'], title=row['TITLE'], page_count=row['PAGE_COUNT'], comicreader_root=OPDS_COMICREADER_ROOT)
+			if 'epub' in row['EXT']:
+				self.template	= JINJA_ENV.get_template('epub.html')
+				return self.template.render(id=row['ID'], directory_id=row['DIRECTORY_ID'], title=row['TITLE'], page_count=row['PAGE_COUNT'], filename=row['FILENAME'], comicreader_root=OPDS_COMICREADER_ROOT)
+			else:
+				self.template	= JINJA_ENV.get_template('reader.html')
+				return self.template.render(id=row['ID'], directory_id=row['DIRECTORY_ID'], title=row['TITLE'], page_count=row['PAGE_COUNT'], comicreader_root=OPDS_COMICREADER_ROOT)
 
 	def sendFile(self, id):
 		row = library.getBookInfos(id)
@@ -79,39 +83,45 @@ class WebLibrary(object):
 
 	@cherrypy.expose
 	def index(self):
-		cherrypy.log("------> Index")
+		logging.debug("Index")
 		return self.renderDir()
 
 	@cherrypy.expose
 	def dir(self, id):
-		cherrypy.log("------> Dir")
+		logging.debug("Dir")
 		return self.renderDir(id)
 
 	@cherrypy.expose
 	def book(self, id):
-		cherrypy.log("------> Book")
+		logging.debug("Book")
 		return self.renderReader(id)
 
 	@cherrypy.expose
 	def download(self, id):
-		cherrypy.log("------> Book")
+		logging.debug("Download")
+		return self.sendFile(id)
+
+	@cherrypy.expose
+	def epub(self, id, filename):
+		self.template	= JINJA_ENV.get_template('epub.html')
+		logging.debug("EPUB")
 		return self.sendFile(id)
 
 	@cherrypy.expose
 	def update(self):
-		cherrypy.log("------> Update")
+		logging.debug("Update")
 		if not self.asyncUpdateThread:
-			cherrypy.log("------> Starting update")
+			logging.debug("Starting update")
 			self.asyncUpdateThread = threading.Thread(target=self.asyncUpdate, args=())
 			self.asyncUpdateThread.start();
 		else:
-			cherrypy.log("------> Update already started!")
+			logging.debug("Update already started!")
 
 	@cherrypy.expose
 	def status(self):
-		cherrypy.log("------> Status")
+		logging.debug("Status")
 		if self.asyncUpdateThread:
-			cherrypy.log("------> Updating")
+			logging.debug("Updating")
 			return 'updating'
 		return 'idle'
 
@@ -124,13 +134,13 @@ class UbooquityOPDSLibrary(object):
 	
 	@cherrypy.tools.accept(media='text/plain')
 	def GET(self, id = None, **params):
-		cherrypy.log("------> UbooquityOPDSLibrary(id={})".format(id))
+		logging.debug("UbooquityOPDSLibrary(id={})".format(id))
 		if 'groupByFolder' in params:
-			cherrypy.log("------> UbooquityOPDSLibrary(id={}) : groupByFolder={}".format(id, params['groupByFolder']))
+			logging.debug("UbooquityOPDSLibrary(id={}) : groupByFolder={}".format(id, params['groupByFolder']))
 		if 'latest' in params:
-			cherrypy.log("------> UbooquityOPDSLibrary(id={}) : latest={}".format(id, params['latest']))
+			logging.debug("UbooquityOPDSLibrary(id={}) : latest={}".format(id, params['latest']))
 		if 'displayFiles' in params:
-			cherrypy.log("------> UbooquityOPDSLibrary(id={}) : displayFiles={}".format(id, params['displayFiles']))
+			logging.debug("UbooquityOPDSLibrary(id={}) : displayFiles={}".format(id, params['displayFiles']))
 
 		if not id:
 			self.template	= JINJA_ENV.get_template('opds-root.xml')
@@ -160,28 +170,28 @@ class UbooquityOPDSBook(object):
 	
 	@cherrypy.tools.accept(media='text/plain')
 	def GET(self, id, file, **params):
-		cherrypy.log("------> UbooquityOPDSBook(id={}, file={})".format(id, file))
+		logging.debug("UbooquityOPDSBook(id={}, file={})".format(id, file))
 		for param in params:
-			cherrypy.log("------> UbooquityOPDSBook(id={}, file={}) param={}".format(id, file, param))
+			logging.debug("UbooquityOPDSBook(id={}, file={}) param={}".format(id, file, param))
 			
 		if 'cover' in params:
-			cherrypy.log("------> UbooquityOPDSBook(id={}) : cover={}".format(id, params['cover']))
+			logging.debug("UbooquityOPDSBook(id={}) : cover={}".format(id, params['cover']))
 			if 'true' == params['cover']:
 				coverfile = '{}{}'.format(id, Library.THUMBIMG_EXT)
 				coverpath = os.path.join(COVER_DIR, coverfile)
-				cherrypy.log("------> UbooquityOPDSBook(id={}) : coverpath={}".format(id, coverpath))
+				logging.debug("UbooquityOPDSBook(id={}) : coverpath={}".format(id, coverpath))
 				if os.path.isfile(coverpath):
-					cherrypy.log("------> UbooquityOPDSBook(id={}) : coverpath={} serving...".format(id, coverpath))
+					logging.debug("UbooquityOPDSBook(id={}) : coverpath={} serving...".format(id, coverpath))
 					return static.serve_file(coverpath, 'image/jpeg', 'inline', coverfile)
 				else:
-					cherrypy.log("------> UbooquityOPDSBook(id={}) : coverpath={} not found!".format(id, coverpath))
+					logging.debug("UbooquityOPDSBook(id={}) : coverpath={} not found!".format(id, coverpath))
 		else:
 			row = library.getBookInfos(id)
 			if row:
 				path = row['PATH']
 				basename = os.path.basename(path)
 				filename, ext = os.path.splitext(basename)
-				cherrypy.log("------> UbooquityOPDSBook(id={}) : file={} serving...".format(id, path))
+				logging.debug("UbooquityOPDSBook(id={}) : file={} serving...".format(id, path))
 				if 'pdf' in ext:
 					return static.serve_file(path, 'application/pdf', 'inline', basename)
 				elif 'epub' in ext:
@@ -208,7 +218,7 @@ class UbooquityOPDSReader(object):
 	
 	@cherrypy.tools.accept(media='text/plain')
 	def GET(self, id, **params):
-		cherrypy.log("------> UbooquityOPDSReader(id={})".format(id))
+		logging.debug("UbooquityOPDSReader(id={})".format(id))
 		row = library.getBookInfos(id)
 		if row:
 			ebookfile 	= None
@@ -226,24 +236,24 @@ class UbooquityOPDSReader(object):
 			# Handle parameters
 			if 'page' in params:
 				page = int(params['page'])
-				cherrypy.log("------> UbooquityOPDSReader(id={}) : page={}".format(id, page))
+				logging.debug("UbooquityOPDSReader(id={}) : page={}".format(id, page))
 
 			if 'width' in params:
 				width = int(params['width'])
-				cherrypy.log("------> UbooquityOPDSReader(id={}) : width={}".format(id, width))
+				logging.debug("UbooquityOPDSReader(id={}) : width={}".format(id, width))
 			
 			imgname = '{}_{}_{}.jpg'.format(id, page, width)
 			imgpath = os.path.join(TMP_DIR, imgname)
-			cherrypy.log("------> UbooquityOPDSReader(id={}) : imgpath={}".format(id, imgpath))
+			logging.debug("UbooquityOPDSReader(id={}) : imgpath={}".format(id, imgpath))
 			
 			# Render page if not in cache
 			if not os.path.isfile(imgpath):
-				cherrypy.log("------> UbooquityOPDSReader(id={}) : imgpath={} create image for ({}, {})...".format(id, imgpath, page, width))
+				logging.debug("UbooquityOPDSReader(id={}) : imgpath={} create image for ({}, {})...".format(id, imgpath, page, width))
 				ebookfile.renderPage(imgpath, page, width)
 
 			# Provide page if not in cache
 			if os.path.isfile(imgpath):
-				cherrypy.log("------> UbooquityOPDSReader(id={}) : imgpath={} image found for ({}, {})".format(id, imgpath, page, width))
+				logging.debug("UbooquityOPDSReader(id={}) : imgpath={} image found for ({}, {})".format(id, imgpath, page, width))
 				return static.serve_file(imgpath, 'image/jpeg', 'inline', imgname)		
 				
 	def POST(self, length=8):
@@ -283,16 +293,16 @@ def CleanTmp():
 			return
 
 if __name__ == '__main__':
-	#*****************************************************************
-	# Logging
-	logger = logging.getLogger()
-	logger.setLevel(logging.DEBUG)
-
 	# Create directories
 	if not os.path.isdir(LOG_DIR): 		os.mkdir(LOG_DIR)
 	if not os.path.isdir(DATA_DIR): 	os.mkdir(DATA_DIR)
 	if not os.path.isdir(COVER_DIR): 	os.mkdir(COVER_DIR)
 	if not os.path.isdir(TMP_DIR): 		os.mkdir(TMP_DIR)
+
+	#*****************************************************************
+	# Logging
+	logger = logging.getLogger()
+	logger.setLevel(logging.DEBUG)
 
 	# Adding file log handleer
 	with open(LOG_FILE, 'w'): pass

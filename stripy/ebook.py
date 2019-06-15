@@ -34,10 +34,12 @@ class eBookImgTools:
 
 class eBook(object):
 	SUPPORTED_EXT 	= []
+	filename = None
 	filePath = None
 
 	def __init__(self, filePath):
-		logging.debug('Initialize eBook file ({})...'.format(filePath))	
+		logging.debug('Initialize eBook file ({})...'.format(filePath))
+		self.filename = os.path.basename(filePath)		
 		self.filePath = filePath
 		
 	def pageCount(self):
@@ -54,9 +56,12 @@ class eBook(object):
 		# If format is supported by fitz
 		if ext in FITZBook.SUPPORTED_EXT:
 			return FITZBook(filePath)
-		# If format is supported by zip
+		# If format is supported by cbz
 		elif ext in CBZBook.SUPPORTED_EXT:
 			return CBZBook(filePath)
+		# If format is supported by cbz
+		elif ext in EpubBook.SUPPORTED_EXT:
+			return EpubBook(filePath)
 		# If format is supported by rar
 		elif ext in CBRBook.SUPPORTED_EXT:
 			return CBRBook(filePath)
@@ -64,7 +69,7 @@ class eBook(object):
 			return eBook(filePath)
 		
 class FITZBook(eBook):
-	SUPPORTED_EXT 	= ['.pdf', '.epub']
+	SUPPORTED_EXT 	= ['.pdf']
 	doc = None
 
 	def __init__(self, filePath):
@@ -102,18 +107,18 @@ class ArchiveBook(eBook):
 	def pageCount(self):
 		return len(self.pages);
 
-class CBZBook(ArchiveBook):
-	SUPPORTED_EXT 	= ['.cbz']
+class ZippedBook(ArchiveBook):
+	SUPPORTED_EXT 	= None
 	zipFile	= None
 
 	def __init__(self, filePath):
-		logging.debug('Opening CBZ eBook file ({})...'.format(filePath))	
+		logging.debug('Opening zipped eBook file ({})...'.format(filePath))	
 		# Open with zipfile
 		self.zipFile = zipfile.ZipFile(filePath)	
 		super().__init__(filePath, self.zipFile.infolist())
 
 	def renderPage(self, imgPath, index, width):
-		logging.debug('CBZBook({}) : Render page({})...'.format(self.filePath, index))	
+		logging.debug('ZippedBook({}) : Render page({})...'.format(self.filePath, index))	
 		# If there is content
 		if self.pages:
 			# If desired page is in range
@@ -122,8 +127,22 @@ class CBZBook(ArchiveBook):
 					# Render file
 					eBookImgTools.fileRenderPage(self.zipFile.open(self.pages[index]), imgPath, width)
 				except zipfile.BadZipfile as e:
-					logging.error('CBZBook({}) : Error while rendering page({}) : {}'.format(self.filePath, index, str(e)))	
+					logging.error('ZippedBook({}) : Error while rendering page({}) : {}'.format(self.filePath, index, str(e)))	
+
+class CBZBook(ZippedBook):
+	SUPPORTED_EXT 	= ['.cbz']
+
+	def __init__(self, filePath):
+		logging.debug('Opening CBZ eBook file ({})...'.format(filePath))	
+		super().__init__(filePath)
 	
+class EpubBook(ZippedBook):
+	SUPPORTED_EXT 	= ['.epub']
+
+	def __init__(self, filePath):
+		logging.debug('Opening epub eBook file ({})...'.format(filePath))	
+		super().__init__(filePath)
+
 class CBRBook(ArchiveBook):
 	SUPPORTED_EXT 	= ['.cbr']
 	rarFile	= None
