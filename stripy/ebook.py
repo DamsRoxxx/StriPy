@@ -4,6 +4,8 @@ import fitz
 import logging
 import rarfile
 import zipfile
+from collections import namedtuple
+from io import BytesIO
 from PIL import Image
 
 class eBookImgTools:
@@ -34,6 +36,7 @@ class eBookImgTools:
 
 class eBook(object):
 	SUPPORTED_EXT 	= []
+	EBookPage		= namedtuple('EBookPage', 'type fp')
 	filename = None
 	filePath = None
 
@@ -48,6 +51,9 @@ class eBook(object):
 	def renderPage(self, imgPath, page, width):
 		return;
 		
+	def getPage(self, page):
+		return(EBookPage('none', None))
+
 	def Open(filePath):
 		logging.debug('Opening eBook file ({})...'.format(filePath))	
 		filename 		= os.path.basename(filePath)
@@ -90,6 +96,18 @@ class FITZBook(eBook):
 		img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
 		eBookImgTools.imgRenderPage(img, imgPath, width)
 
+	def getPage(self, index):
+		logging.debug('FITZBook({}) : Get page({})...'.format(self.filePath, index))	
+
+		# If desired page is in range
+		if index in range(self.pageCount()):
+			page 		= self.doc.loadPage(index)
+
+			# Render file
+			logging.debug('{}'.format(page.rect.width))
+			#return(BytesIO(page.getSVGimage().encode()))
+			return(eBook.EBookPage('.png', BytesIO(page.getPixmap(matrix = fitz.Matrix(2, 2), alpha=False).getPNGData())))
+
 class ArchiveBook(eBook):
 	pages = None
 
@@ -129,6 +147,21 @@ class ZippedBook(ArchiveBook):
 				except zipfile.BadZipfile as e:
 					logging.error('ZippedBook({}) : Error while rendering page({}) : {}'.format(self.filePath, index, str(e)))	
 
+	def getPage(self, index):
+		logging.debug('ZippedBook({}) : Get page({})...'.format(self.filePath, index))	
+		# If there is content
+		if self.pages:
+			# If desired page is in range
+			if index in range(len(self.pages)):
+				try:
+					# Render file
+					fileinfo		= self.pages[index]
+					filename 		= fileinfo.filename
+					basename, ext 	= os.path.split(filename)
+					return(eBook.EBookPage(ext, self.zipFile.open(fileinfo)))
+				except zipfile.BadZipfile as e:
+					logging.error('ZippedBook({}) : Error while accessing page({}) : {}'.format(self.filePath, index, str(e)))	
+
 class CBZBook(ZippedBook):
 	SUPPORTED_EXT 	= ['.cbz']
 
@@ -161,3 +194,15 @@ class CBRBook(ArchiveBook):
 			if index in range(len(self.pages)):
 				# Render file
 				eBookImgTools.fileRenderPage(self.rarFile.open(self.pages[index]), imgPath, width)
+
+	def getPage(self, index):
+		logging.debug('CBRBook({}) : Get page({})...'.format(self.filePath, index))	
+		# If there is content
+		if self.pages:
+			# If desired page is in range
+			if index in range(len(self.pages)):
+				# Render file
+				fileinfo		= self.pages[index]
+				filename 		= fileinfo.filename
+				basename, ext 	= os.path.split(filename)
+				return(eBook.EBookPage(ext, self.rarFile.open(fileinfo)))

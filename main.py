@@ -241,20 +241,15 @@ class UbooquityOPDSReader(object):
 			if 'width' in params:
 				width = int(params['width'])
 				logging.debug("UbooquityOPDSReader(id={}) : width={}".format(id, width))
-			
-			imgname = '{}_{}_{}.jpg'.format(id, page, width)
-			imgpath = os.path.join(TMP_DIR, imgname)
-			logging.debug("UbooquityOPDSReader(id={}) : imgpath={}".format(id, imgpath))
-			
-			# Render page if not in cache
-			if not os.path.isfile(imgpath):
-				logging.debug("UbooquityOPDSReader(id={}) : imgpath={} create image for ({}, {})...".format(id, imgpath, page, width))
-				ebookfile.renderPage(imgpath, page, width)
 
-			# Provide page if not in cache
-			if os.path.isfile(imgpath):
-				logging.debug("UbooquityOPDSReader(id={}) : imgpath={} image found for ({}, {})".format(id, imgpath, page, width))
-				return static.serve_file(imgpath, 'image/jpeg', 'inline', imgname)		
+			page = ebookfile.getPage(page)
+			if 'jpeg' in page.type:
+				cherrypy.response.headers['Content-Type'] = "image/jpeg"
+			elif 'png' in page.type:
+				cherrypy.response.headers['Content-Type'] = "image/png"
+			elif 'svg' in page.type:
+				cherrypy.response.headers['Content-Type'] = "image/svg+xml"
+			return cherrypy.lib.file_generator(page.fp)
 				
 	def POST(self, length=8):
 		return
