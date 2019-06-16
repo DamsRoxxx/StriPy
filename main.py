@@ -8,6 +8,7 @@ import sqlite3
 import threading
 import datetime
 import time
+import mimetypes
 from stat import S_ISREG, ST_CTIME, ST_MODE
 import xml.etree.ElementTree as ET
 from jinja2 import Environment, FileSystemLoader
@@ -32,10 +33,14 @@ OPDS_COMICREADER_ROOT = '/opds-comics/comicreader/'
 class WebLibrary(object):
 	library 	= None
 	asyncUpdateThread = None
+	cache		= CacheDict(size=10, timeout=600)
 
 	def __init__(self, library):
 		self.library = library
 		
+	def _cp_dispatch(self, vpath):
+		return vpath
+
 	def renderDir(self, id = None):
 		title 		= 'StriPy'
 		section		= 'Libraries'
@@ -78,9 +83,6 @@ class WebLibrary(object):
 		library.update()
 		self.asyncUpdateThread = None			
 
-	def _cp_dispatch(self, vpath):
-		return vpath
-
 	@cherrypy.expose
 	def index(self):
 		logging.debug("Index")
@@ -102,10 +104,39 @@ class WebLibrary(object):
 		return self.sendFile(id)
 
 	@cherrypy.expose
-	def epub(self, id, filename):
-		self.template	= JINJA_ENV.get_template('epub.html')
-		logging.debug("EPUB")
-		return self.sendFile(id)
+	def epub(self, id, *args):
+		filepath = '/'.join(args)
+		
+		# Guess mimetype of the file
+		mimetype = mimetypes.guess_type(filepath, strict=False)[0]
+		if not mimetype:
+			# Not found use default
+			mimetype = 'application/octet-stream'
+		
+		# Search for the book
+		logging.debug("epub(id={}, filepath={}) : MIME type : {}".format(id, filepath, mimetype))
+		row = library.getBookInfos(id)
+		if row:
+			ebookfile 	= None
+			epubpath 	= row['PATH']
+			
+			# Cache ebook file
+			if epubpath in self.cache:
+				logging.debug("epub(id={}, filepath={}) : Found in cache".format(id, filepath))
+				ebookfile = self.cache.get(epubpath)
+			else:
+				logging.debug("epub(id={}, filepath={}) : Not found in cache, opening and caching".format(id, filepath))
+				ebookfile 				= eBook.Open(epubpath)
+				self.cache[epubpath] 	= ebookfile
+			
+			# Get desired file
+			fp = ebookfile.getFile(filepath)
+			if fp:
+				cherrypy.response.headers['Content-Type'] = mimetype
+				return cherrypy.lib.file_generator(fp)
+				
+		# Error
+		raise cherrypy.HTTPError(404)
 
 	@cherrypy.expose
 	def update(self):

@@ -128,7 +128,8 @@
 		  }
 		});
 				
-		var book = ePub("{{ '/epub/' ~ id ~ '/' ~ filename }}");
+		// TODO var book = ePub("{{ '/epub/' ~ id ~ '/' ~ filename }}");
+		var book = ePub("{{ '/epub/' ~ id ~ '/' }}");
 			
 		book.ready.then(() => {
 			PageCount 		= 100; // TODO

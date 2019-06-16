@@ -162,6 +162,17 @@ class ZippedBook(ArchiveBook):
 				except zipfile.BadZipfile as e:
 					logging.error('ZippedBook({}) : Error while accessing page({}) : {}'.format(self.filePath, index, str(e)))	
 
+	def getFile(self, path):
+		logging.debug('ZippedBook({}) : getFile({})...'.format(self.filePath, path))
+		
+		try:
+			# Return file
+			return(self.zipFile.open(path))
+		except zipfile.BadZipfile as e:
+			logging.error('ZippedBook({}) : Error while accessing file({}) : {}'.format(self.filePath, path, str(e)))	
+		except KeyError as e:
+			logging.error('ZippedBook({}) : Error while accessing file({}) : {}'.format(self.filePath, path, str(e)))	
+
 class CBZBook(ZippedBook):
 	SUPPORTED_EXT 	= ['.cbz']
 
