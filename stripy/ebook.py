@@ -9,6 +9,7 @@ from io import BytesIO
 from PIL import Image
 
 class eBookImgTools:
+	IMG_4K_HEIGHT		= 2160
 	IMG_SUPPORTED_EXT 	= ['.jpg', '.jpeg', '.png']
 
 	def isImgFile(filename):
@@ -102,11 +103,16 @@ class FITZBook(eBook):
 		# If desired page is in range
 		if index in range(self.pageCount()):
 			page 		= self.doc.loadPage(index)
+			zoomFactor	= eBookImgTools.IMG_4K_HEIGHT/page.rect.height
+			pix 		= page.getPixmap(matrix = fitz.Matrix(zoomFactor, zoomFactor), colorspace=fitz.csRGB, alpha=False)
+			img 		= Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+			imgByteArr 	= BytesIO()
+			img.save(imgByteArr, 'JPEG')
+			imgByteArr.seek(0)
 
 			# Render file
-			logging.debug('{}'.format(page.rect.width))
 			#return(BytesIO(page.getSVGimage().encode()))
-			return(eBook.EBookPage('.png', BytesIO(page.getPixmap(matrix = fitz.Matrix(2, 2), alpha=False).getPNGData())))
+			return(eBook.EBookPage('.jpg', imgByteArr))
 
 class ArchiveBook(eBook):
 	pages = None
