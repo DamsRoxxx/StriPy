@@ -121,10 +121,8 @@ class WebLibrary(object):
 			epubpath 	= row['PATH']
 			
 			# Cache ebook file
-			if epubpath in self.cache:
-				logging.debug("epub(id={}, filepath={}) : Found in cache".format(id, filepath))
-				ebookfile = self.cache.get(epubpath)
-			else:
+			ebookfile = self.cache.get(epubpath)
+			if not ebookfile:
 				logging.debug("epub(id={}, filepath={}) : Not found in cache, opening and caching".format(id, filepath))
 				ebookfile 				= eBook.Open(epubpath)
 				self.cache[epubpath] 	= ebookfile
@@ -258,9 +256,8 @@ class UbooquityOPDSReader(object):
 			width 		= Library.THUMB_WIDTH
 			
 			# Cache ebook file
-			if path in self.cache:
-				ebookfile = self.cache.get(path)
-			else:
+			ebookfile = self.cache.get(path)
+			if not ebookfile:
 				ebookfile 			= eBook.Open(path)
 				self.cache[path] 	= ebookfile
 				
