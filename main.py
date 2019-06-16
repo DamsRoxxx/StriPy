@@ -271,7 +271,7 @@ class UbooquityOPDSReader(object):
 				logging.debug("UbooquityOPDSReader(id={}) : width={}".format(id, width))
 
 			page = ebookfile.getPage(page)
-			if 'jpeg' in page.type:
+			if 'jpg' in page.type:
 				cherrypy.response.headers['Content-Type'] = "image/jpeg"
 			elif 'png' in page.type:
 				cherrypy.response.headers['Content-Type'] = "image/png"
