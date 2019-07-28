@@ -1,0 +1,5 @@
+cherrypy
+Jinja2
+PyMuPDF
+rarfile
+Pillow
